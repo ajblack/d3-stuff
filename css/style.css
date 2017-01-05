@@ -1,0 +1,16 @@
+.btnContainer {
+  width: 100%;
+  padding: 10px; }
+  .btnContainer #d3Btn {
+    background-color: red;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px; }
+
+.chartContainer {
+  padding: 10px; }
+  .chartContainer .chart rect {
+    fill: steelblue; }
+  .chartContainer .chart text {
+    fill: white;
+    font: 10px sans-serif; }

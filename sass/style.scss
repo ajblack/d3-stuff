@@ -1,0 +1,27 @@
+.btnContainer{
+  width:100%;
+  padding:10px;
+
+
+
+  #d3Btn{
+    background-color: red;
+    padding:10px;
+    cursor: pointer;
+    border-radius: 5px;
+  }
+}
+
+.chartContainer{
+  padding: 10px;
+
+  .chart rect {
+    fill: steelblue;
+  }
+
+  .chart text {
+    fill: white;
+    font: 10px sans-serif;
+  }
+
+}
