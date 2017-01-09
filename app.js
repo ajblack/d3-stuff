@@ -5,20 +5,21 @@ var nodeData = [{x: 30, y: 50, key: 0, size: 1},
               {x: 133, y: 512, key: 4, size: 4},
               {x: 190, y: 520, key: 5, size: 8}]
 
-var width, height, vis, selector;
-var index = 6
+var width, height, vis, selector, index, marginVert, marginHor;
+marginVert = 50; marginHor = 50;
+index = 6
 var verticalScale = d3.scaleLinear();
 var horizontalScale = d3.scaleLinear();
 verticalScale.domain([0,d3.max(nodeData, function(d){
   return d.y;
 })]);
-verticalScale.range([0,window.innerHeight*.9]);
+verticalScale.range([0,300]);
 
 
 horizontalScale.domain([0,d3.max(nodeData, function(d){
   return d.x;
 })]);
-horizontalScale.range([0,window.innerWidth*.9]);
+horizontalScale.range([0,500]);
 
 
 var writeChart = function(){
@@ -30,6 +31,28 @@ var writeChart = function(){
     .attr('r', function(d){return d.size+'px'})
     .attr('fill', 'rgb(138, 134, 216)')
     .attr('data-key', function(d){return d.key})
+    .attr('transform', 'translate('+marginHor+','+marginVert+')')
+    .on('mouseover', function(d){
+      console.log('mousing over element '+d.key);
+    })
+
+    //austin\
+    /*
+    var margin = {top: 20, right: 30, bottom: 30, left: 40},
+    width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;*/
+    var yAxis = d3.axisLeft(verticalScale);
+    var xAxis = d3.axisTop(horizontalScale);
+    d3.select('svg').append('g')
+    .attr('transform', 'translate('+marginHor+','+marginVert+')')
+    .classed('x axis', true)
+    .call(xAxis);
+
+    d3.select('svg').append('g')
+    .attr('transform', 'translate('+marginHor+','+marginVert+')')
+    .classed('y axis', true)
+    .call(yAxis);
+
 }
 
 var initChart = function(){
@@ -50,6 +73,9 @@ var addNewNode = function(evt){
   .attr('r', function(d){return nodeData[nodeData.length-1].size+'px'})
   .attr('fill', 'rgb(229, 144, 177)')
   .attr('data-key', function(){index++; return nodeData[nodeData.length-1].key})
+  .on('mouseover', function(d){
+    console.log('mousing over element '+nodeData[nodeData.length-1].key);
+  })
 }
 
 var removeNode = function(target){
