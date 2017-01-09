@@ -6,14 +6,27 @@ var nodeData = [{x: 30, y: 50, key: 0, size: 1},
               {x: 190, y: 520, key: 5, size: 8}]
 
 var width, height, vis, selector;
-var index = 6;
+var index = 6
+var verticalScale = d3.scaleLinear();
+var horizontalScale = d3.scaleLinear();
+verticalScale.domain([0,d3.max(nodeData, function(d){
+  return d.y;
+})]);
+verticalScale.range([0,window.innerHeight*.9]);
+
+
+horizontalScale.domain([0,d3.max(nodeData, function(d){
+  return d.x;
+})]);
+horizontalScale.range([0,window.innerWidth*.9]);
+
 
 var writeChart = function(){
   vis.selectAll('circle .node').data(nodeData).enter()
     .append('svg:circle')
     .attr('class', 'node')
-    .attr('cx', function(d){return d.x;})
-    .attr('cy', function(d){return d.y})
+    .attr('cx', function(d){return horizontalScale(d.x)})
+    .attr('cy', function(d){return verticalScale(d.y)})
     .attr('r', function(d){return d.size+'px'})
     .attr('fill', 'rgb(138, 134, 216)')
     .attr('data-key', function(d){return d.key})
