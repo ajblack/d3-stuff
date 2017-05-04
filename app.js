@@ -56,8 +56,8 @@ var writeChart = function(){
 }
 
 var initChart = function(){
-  height = window.innerHeight;
-  width = window.innerWidth;
+  height = window.innerHeight/2;
+  width = window.innerWidth/2;
   vis = d3.select('#graph').append('svg');
   vis.attr('width', width).attr('height',height);
   vis.text('The Graph').select('#graph');
@@ -95,8 +95,15 @@ var modNodeSize = function(target, sign){
    });
 }
 
+var moveWindow = function(mousevent, elem, offX, offY){
+  elem.style.left = mousevent.clientX - offX
+  elem.style.top = mousevent.clientY - offY
+}
+
 window.onload = function(){
   initChart();
+
+  var draggableWindow = document.querySelector('.newChartContainer')
   document.addEventListener('click', function(evt){
     if(evt.target.classList.contains('node')){
       //removeNode(evt.target);
@@ -114,5 +121,23 @@ window.onload = function(){
       modNodeSize(evt.target, -1);
     }
 
+  })
+
+  document.querySelector('.newWindowBtn').addEventListener('click', function(evt){
+    console.log("btn pressed")
+    draggableWindow.classList.add('blockDis')
+  })
+
+  draggableWindow.addEventListener('mousedown', function(evt){
+    console.log('drag window mouse down')
+    var windowRect = evt.target.getBoundingClientRect()
+    var offsetX = evt.clientX - windowRect.left
+    var offsetY = evt.clientY - windowRect.top
+    console.log('x offset is: '+offsetX+' and y offset is: '+offsetY)
+    draggableWindow.addEventListener('mousemove',moveWindow(evt, evt.target, offsetX, offsetY))
+
+  })
+  draggableWindow.addEventListener('mouseup', function(evt){
+    //draggableWindow.removeEventListener('mousemove', moveWindow(evt))
   })
 }

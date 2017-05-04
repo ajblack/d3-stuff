@@ -17,7 +17,9 @@
   },
   "homepage": "https://github.com/ajblack/d3-stuff#readme",
   "devDependencies": {
+    "del": "^2.2.2",
     "gulp": "^3.9.1",
-    "gulp-sass": "^3.0.0"
+    "gulp-sass": "^3.0.0",
+    "vinyl-fs": "^2.4.4"
   }
 }
