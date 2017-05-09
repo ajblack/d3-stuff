@@ -2,6 +2,10 @@
   <link rel="stylesheet" href="css/style.css"/>
   <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
   <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
+  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
+  <style type="text/css">
+        .leaflet-container{background-color:#c5e8ff;}
+  </style>
   <!--<script src="app.js" charset='utf-8'></script>-->
   <!--<script src="mapapp.js" charset='utf-8'></script>-->
   <script src="neighborhoods.js"></script>
@@ -38,7 +42,7 @@
   var min = d3.min(neighborhoods_json.features, function(d){return d.properties.density});
   console.log(min);
 
-  var color = d3.scaleThreshold()
+  var color = d3.scaleOrdinal()
     .domain(d3.range(min, max))
     .range(d3.schemeBlues[9]);
 
@@ -46,10 +50,11 @@
     .data( neighborhoods_json.features )
     .enter()
     .append( "path" )
-    .attr( "fill", "#ccc" )
-    .attr("opacity", function(d){
-      return d.properties.density/max;
+
+    .attr("fill", function(d){
+      return color(d.properties.density);
     })
+    .attr("opacity", .75)
     .attr( "d", geoPath );
 
 
