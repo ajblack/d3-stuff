@@ -1,7 +1,7 @@
 <head>
   <link rel="stylesheet" href="css/style.css"/>
-  <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-  <!--<script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>-->
+  <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
+  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
   <!--<script src="app.js" charset='utf-8'></script>-->
   <!--<script src="mapapp.js" charset='utf-8'></script>-->
   <script src="neighborhoods.js"></script>
@@ -21,13 +21,13 @@
 
   var g = svg.append( "g" );
 
-  var albersProjection = d3.geo.albers()
+  var albersProjection = d3.geoAlbers()
     .scale( 190000 )
     .rotate( [71.057,0] )
     .center( [0, 42.313] )
     .translate( [width/2,height/2] );
 
-  var geoPath = d3.geo.path()
+  var geoPath = d3.geoPath()
     .projection( albersProjection );
 
     //max density
@@ -37,10 +37,10 @@
   //min density
   var min = d3.min(neighborhoods_json.features, function(d){return d.properties.density});
   console.log(min);
-/*
-  var color = d3.scale.threshold()
+
+  var color = d3.scaleThreshold()
     .domain(d3.range(min, max))
-    .range(d3.schemeBlues[9]);*/
+    .range(d3.schemeBlues[9]);
 
   g.selectAll( "path" )
     .data( neighborhoods_json.features )
