@@ -1,0 +1,23 @@
+body {
+  background-color: white;
+}
+svg {
+  border: 1px solid black;
+  background-color: gray;
+}
+
+.land {
+fill: #d7c7ad;
+stroke: #766951;
+}
+
+.boundary {
+fill: none;
+stroke: #a5967e;
+}
+
+.pin{
+border: 5px solid black;
+fill: red;
+
+}

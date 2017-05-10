@@ -1,3 +1,4 @@
+var world = 
 {
 	"type": "Topology",
 	"objects": {
