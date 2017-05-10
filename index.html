@@ -1,82 +1,65 @@
+<!doctype html>
+<html lang="en">
+
 <head>
-  <link rel="stylesheet" href="css/style.css"/>
-  <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
-  <script src="https://d3js.org/d3-scale-chromatic.v1.min.js"></script>
-  <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.1/leaflet.css" />
-  <style type="text/css">
-        .leaflet-container{background-color:#c5e8ff;}
+  <meta charset="utf-8">
+  <style>
+
+    body {
+      background-color: white;
+    }
+    svg {
+    	border: 1px solid black;
+    	background-color: gray;
+    }
+
+	.land {
+	  fill: #d7c7ad;
+	  stroke: #766951;
+	}
+
+	.boundary {
+	  fill: none;
+	  stroke: #a5967e;
+	}
+
   </style>
-  <!--<script src="app.js" charset='utf-8'></script>-->
-  <!--<script src="mapapp.js" charset='utf-8'></script>-->
-  <script src="neighborhoods.js"></script>
-  <script src="rodents.js"></script>
+
 </head>
 
 <body>
-  <script>
+	<script src="http://d3js.org/d3.v4.min.js"></script>
+	<script src="http://d3js.org/topojson.v0.min.js"></script>
+	<script>
+		var width = 960,
+		    height = 480;
 
-  var width = 700,
-      height = 580;
+		var svg = d3.select("body").append("svg")
+		    .attr("width", width)
+		    .attr("height", height);
 
-  var svg = d3.select( "body" )
-    .append( "svg" )
-    .attr( "width", width )
-    .attr( "height", height );
-
-  var g = svg.append( "g" );
-
-  var albersProjection = d3.geoAlbers()
-    .scale( 190000 )
-    .rotate( [71.057,0] )
-    .center( [0, 42.313] )
-    .translate( [width/2,height/2] );
-
-  var geoPath = d3.geoPath()
-    .projection( albersProjection );
-
-    //max density
-  var max = d3.max(neighborhoods_json.features, function(d){return d.properties.density});
-  console.log(max);
-
-  //min density
-  var min = d3.min(neighborhoods_json.features, function(d){return d.properties.density});
-  console.log(min);
-
-  var color = d3.scaleOrdinal()
-    .domain(d3.range(min, max))
-    .range(d3.schemeBlues[9]);
-
-  g.selectAll( "path" )
-    .data( neighborhoods_json.features )
-    .enter()
-    .append( "path" )
-
-    .attr("fill", function(d){
-      return color(d.properties.density);
-    })
-    .attr("opacity", .75)
-    .attr( "d", geoPath );
+		var projection = d3.geoEquirectangular()
+			.scale(153)
+		    .translate([width/2,height/2])
 
 
-  var rodents = svg.append( "g" );
+		var path = d3.geoPath()
+		    .projection(projection);
 
-  rodents.selectAll( "path" )
-    .data( rodents_json.features )
-    .enter()
-    .append( "path" )
-    .attr( "fill", "#900" )
-    .attr( "stroke", "#999" )
-    .attr( "d", geoPath )
-    .on('click', function(){
-      d3.select(this).remove();
-    })
-
-  </script>
-  <!--
-  <div class='chartContainer'  id='graph'>
-  </div>
-  <span class='newWindowBtn'>click me</span>
-  <div class='newChartContainer' draggable="false">
-  </div>
--->
+		d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772591b47e/raw/8a7f176072d508218e120773943b595c998991be/world-50m.json", function(error, world) {
+		  	svg.append("g")
+		  		.attr("class", "land")
+				.selectAll("path")
+		  		.data([topojson.object(world, world.objects.land)])
+			    .enter().append("path")
+			    .attr("d", path);
+			svg.append("g")
+		  		.attr("class", "boundary")
+				.selectAll("boundary")
+		  		.data([topojson.object(world, world.objects.countries)])
+			    .enter().append("path")
+			    .attr("d", path);
+		});
+	</script>
 </body>
+</html>
