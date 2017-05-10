@@ -21,7 +21,12 @@
 	.boundary {
 	  fill: none;
 	  stroke: #a5967e;
-	}
+  }
+
+  .pin{
+    fill: red;
+    
+  }
 
   </style>
 
@@ -44,7 +49,11 @@
 
 
 		var path = d3.geoPath()
-		    .projection(projection);
+		    .projection(projection
+
+
+    var latlong = {"type":"FeatureCollection","features":[
+    {"type":"Feature","geometry":{"type":"Point","coordinates":[99.1332,19.4326]},"properties":{"timestampMs":1415894666875}},
 
 		d3.json("https://gist.githubusercontent.com/abenrob/787723ca91772591b47e/raw/8a7f176072d508218e120773943b595c998991be/world-50m.json", function(error, world) {
 		  	svg.append("g")
