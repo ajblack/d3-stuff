@@ -26,13 +26,13 @@ window.onload = function(){
       svg.append("g")
         .attr("class", "land")
       .selectAll("path")
-        .data([topojson.object(world, world.objects.land)])
+        .data([topojson.feature(world, world.objects.land)])
         .enter().append("path")
         .attr("d", path);
     svg.append("g")
         .attr("class", "boundary")
         .selectAll("boundary")
-        .data([topojson.object(world, world.objects.countries)])
+        .data([topojson.feature(world, world.objects.countries)])
         .enter().append("path")
         .attr("d", path);
     svg.append( "g" ).selectAll("path")
