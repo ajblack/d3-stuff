@@ -21,17 +21,16 @@ window.onload = function(){
     retCords.push(ret);
   }
 
-  console.log(retCords);
+  //console.log(retCords);
 
-
-/*
+  var coordinatePairs = [];
   for(var i=0;i<data.rows.length;i++){
-    var ret =
-    [
-      {"type":"Feature","geometry":{"type":"Point","coordinates":[0,0]},"properties":{"timestampMs":0}},
-      {"type":"Feature","geometry":{"type":"Point","coordinates":[0,0]},"properties":{"timestampMs":0}}
-    ]
-  }*/
+    var r1 = {"type":"Feature","geometry":{"type":"Point","coordinates":[data.rows[i][0],data.rows[i][1]]},"properties":{"timestampMs":0}};
+    var r2 = {"type":"Feature","geometry":{"type":"Point","coordinates":[data.rows[i][2],data.rows[i][3]]},"properties":{"timestampMs":0}};
+    coordinatePairs.push([r1,r2])
+  }
+
+  console.log(coordinatePairs);
 
   //map the coordinates of each row value (set of two coordinates) individually to a retCords coordinate
   var currentRet = 0;
@@ -55,6 +54,18 @@ window.onload = function(){
   var svg = d3.select("body").append("svg")
       .attr("width", width)
       .attr("height", height);
+
+      svg.append("svg:defs").append("svg:marker")
+          .attr("id", "triangle")
+          .attr("refX", 30)
+          .attr("refY", 2)
+          .attr("markerWidth", 30)
+          .attr("markerHeight", 30)
+          .attr("orient", "auto")
+          .append("path")
+          .attr("d", "M 0 0 4 2 0 4 1 2")
+          .style("fill", "red");
+
 
   var projection = d3.geoEquirectangular()
     .scale(153)
@@ -86,39 +97,33 @@ window.onload = function(){
       .enter()
       .append("path")
       .attr( "d", pathGenerator);
-/*
-    svg.append("path")
-               .datum({type: "LineString", coordinates: [[-122.6795,45.5128],[-46.62890,-23.54640]]})
-               .attr("style","stroke: red; stroke-width: 2px; fill: none")
-               .attr("d", path);
-     svg.append("path")
-              .datum({type: "LineString", coordinates: [[-122.6795,45.5128],[151.19820,-33.86120]]})
-              .attr("style","stroke: red; stroke-width: 2px; fill: none")
-              .attr("d", path);*/
-/*
-      svg.append("path")
-               .datum({type: "LineString", coordinates: [[-122.6795,45.5128],[151.19820,-33.86120]]})
-               .attr("style","stroke: red; stroke-width: 2px; fill: none")
-               .attr("d", pathGenerator);*/
-/*
-     for(var i=0;i<retCords.length; i++){
-       var
-     }*/
 
-      var p1 = projection([-122.6795,45.5128]);
-      var p2 = projection([151.19820,-33.86120])
-      var lineData = [{"x":p1[0], "y":p1[1]},{"x":p2[0],"y":p2[1]}];
 
-      //This is the accessor function we talked about above
+      //helper function returns line data from coordinate pair
       var lineFunction = d3.line()
         .x(function(d) { return d.x; })
         .y(function(d) { return d.y; });
 
-      svg.append("path")
-      .attr("d", lineFunction(lineData))
-      .attr("stroke", "blue")
-      .attr("stroke-width", 2)
-      .attr("fill", "none");
-      
+      //using the coordinate pair object construct lines between coordinates
+      for(var i=0;i<coordinatePairs.length;i++){
+        var p1 = projection([coordinatePairs[i][0].geometry.coordinates[0],coordinatePairs[i][0].geometry.coordinates[1]])
+        var p2 = projection([coordinatePairs[i][1].geometry.coordinates[0],coordinatePairs[i][1].geometry.coordinates[1]])
+        var lineD = [
+          {"x":p1[0],"y":p1[1]},
+          {"x":p2[0],"y":p2[1]},
+        ];
+        svg.append("path")
+        .attr("d", lineFunction(lineD))
+        .attr("stroke", "red")
+        .attr("stroke-width", 2)
+        .attr("class","customline")
+        .attr("fill", "none")
+        .attr("marker-end","url(#triangle)");
+
+
+
+
+      }
+
 
 }

@@ -21,3 +21,7 @@ border: 5px solid black;
 fill: red;
 
 }
+#marker {
+  stroke: black;
+    fill: black;
+}
