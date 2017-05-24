@@ -43,18 +43,62 @@
 
  }
 
+  #world-map-modal-container{
+    z-index: 1000;
+    transition: opacity .5s, z-index .1s;
+    position: fixed;
+    width:220px;
+    height:200px;
+transition: opacity .5s, z-index .1s;
+
+  }
+
  #world-map-hover-modal{
    width: 200px;
    height: 200px;
    background-color: red;
    opacity: .6;
-   z-index: 1000;
+   /*z-index: 1000;*/
    border-top-right-radius: 10px;
    border-bottom-right-radius: 10px;
    border-bottom-left-radius: 10px;
    border: 2px solid blue;
+   position: fixed;
+   display: inline;
+   /*
+   transition: opacity .5s, z-index .1s;
+   */
  }
 
- .customLine{
 
+#world-map-connect-background{
+  display:inline-block;
+  width: 20px;
+  height: 10px;
+  padding: 0;
+  margin: 0;
+}
+
+#world-map-connect-line{
+  display:inline-block;
+  width: 22px;
+  height: 20px;
+  border-bottom: 1px solid green;
+  transform:
+  translateY(4px)
+  translateX(1px)
+  rotate(-26deg);
+  position: absolute;
+  top: -10px;
+  left: 1px;
+}
+
+  #world-map-hover-modal.hiddenmodal{
+   opacity: 0;
+   z-index:-1;
+ }
+
+ #world-map-modal-container.hiddenmodal{
+   opacity: 0;
+   z-index: -1;
  }
