@@ -1,0 +1,28 @@
+#world-map-hover-modal{
+  max-width: 300px;
+  max-height: 300px;
+   background-color: red;
+   opacity: .6;
+   /*z-index: 1000;*/
+   border-top-right-radius: 10px;
+   border-bottom-right-radius: 10px;
+   border-bottom-left-radius: 10px;
+   border: 2px solid blue;
+   position: fixed;
+   display: inline;
+
+ }
+/*padding does top right bottom left*/
+ #modal-title{
+   display: block;
+   padding: 20px 10px 20px 10px;
+   color: white;
+   font:2em "Open Sans", sans-serif;
+ }
+
+ .modal-detail{
+   display: block;
+   padding: 10px;
+   color: white;
+   font:1em "Open Sans", sans-serif;
+ }

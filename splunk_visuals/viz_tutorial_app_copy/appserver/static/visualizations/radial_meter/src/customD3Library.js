@@ -43,12 +43,6 @@
     _v.createModal = function(){
       if(!modalInit){
         /*
-        var iDiv = document.createElement('div');
-        iDiv.id = 'world-map-hover-modal';
-        //iDiv.className = "hiddenmodal";
-        document.getElementsByTagName('body')[0].appendChild(iDiv);
-*/
-        //new try
         var containerDiv = document.createElement('div');
         containerDiv.id = 'world-map-modal-container';
 
@@ -56,7 +50,7 @@
         lineBackDiv.id = 'world-map-connect-background';
 
         var lineDiv = document.createElement('div');
-        lineDiv.id = 'world-map-connect-line';
+        lineDiv.id = 'world-map-connect-line';*/
 
         var modalDiv = window.document.createElement('div');
         modalDiv.id = 'world-map-hover-modal';
@@ -68,6 +62,9 @@
         lineBackDiv.appendChild(lineDiv);
 */
         window.document.getElementsByTagName('body')[0].appendChild(modalDiv);
+        $( "#world-map-hover-modal" ).load( "/static/app/viz_tutorial_app/modal.html", function(){
+          //document.getElementById('world-map-hover-modal').classList.add("hiddenmodal");
+        } );
 
       }
       modalInit = true;

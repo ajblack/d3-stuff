@@ -53,7 +53,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            __webpack_require__(5),
 	            __webpack_require__(6),
 	            __webpack_require__(7),
-	            __webpack_require__(8)
+	            __webpack_require__(8),
+	            __webpack_require__(9)
 	        ], __WEBPACK_AMD_DEFINE_RESULT__ = function(
 	            $,
 	            _,
@@ -62,7 +63,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            d3,
 	            topojson,
 	            w,
-	            cD3
+	            cD3,
+	            cData
 	        ) {
 
 	    return SplunkVisualizationBase.extend({
@@ -221,15 +223,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                //add opaque div for a text area
 
 	                var modalWindow = document.getElementById('world-map-hover-modal');
-	                modalWindow.classList.remove("hiddenmodal");
+	                modalWindow.classList.add("visiblemodal");
 	                modalWindow.style.top = d3.event.clientY-10+'px';
 	                modalWindow.style.left = d3.event.clientX+20+'px';
-	/*
-	                var modalWindow = document.getElementById('world-map-modal-container');
-	                modalWindow.classList.remove("hiddenmodal");
-	                modalWindow.style.top = d3.event.clientY-10+'px';
-	                modalWindow.style.left = d3.event.clientX+'px';
-	                */
 
 	              })
 	              .on("click", function(d){
@@ -237,14 +233,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	              })
 	              .on("mouseleave", function(d){
 	                d3.select(this).transition().style("stroke", "red").duration(500);
+
 	                var modalWindow = document.getElementById('world-map-hover-modal');
-	                modalWindow.classList.add("hiddenmodal");
-
-	                /*
-	                var modalWindow = document.getElementById('world-map-modal-container');
-	                modalWindow.classList.add("hiddenmodal");
-	                */
-
+	                modalWindow.classList.remove("visiblemodal");
 	              });
 	            }
 	          }
@@ -373027,12 +373018,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    _v.createModal = function(){
 	      if(!modalInit){
 	        /*
-	        var iDiv = document.createElement('div');
-	        iDiv.id = 'world-map-hover-modal';
-	        //iDiv.className = "hiddenmodal";
-	        document.getElementsByTagName('body')[0].appendChild(iDiv);
-	*/
-	        //new try
 	        var containerDiv = document.createElement('div');
 	        containerDiv.id = 'world-map-modal-container';
 
@@ -373040,7 +373025,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        lineBackDiv.id = 'world-map-connect-background';
 
 	        var lineDiv = document.createElement('div');
-	        lineDiv.id = 'world-map-connect-line';
+	        lineDiv.id = 'world-map-connect-line';*/
 
 	        var modalDiv = window.document.createElement('div');
 	        modalDiv.id = 'world-map-hover-modal';
@@ -373052,6 +373037,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        lineBackDiv.appendChild(lineDiv);
 	*/
 	        window.document.getElementsByTagName('body')[0].appendChild(modalDiv);
+	        $( "#world-map-hover-modal" ).load( "/static/app/viz_tutorial_app/modal.html", function(){
+	          //document.getElementById('world-map-hover-modal').classList.add("hiddenmodal");
+	        } );
 
 	      }
 	      modalInit = true;
@@ -373065,6 +373053,33 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	  // We need that our library is globally accesible, then we save in the window
 	  if(typeof(window.myCustomD3Library) === 'undefined'){
 	    window.myCustomD3Library = customD3Library();
+	  }
+	})(window); // We send the window variable withing our function
+
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports) {
+
+	(function(window){
+
+	  function customDataLibrary(){
+	    var _v = {};
+
+	    console.log('initializing data lib');
+
+	    _v.testfunction = function(){
+
+	    }
+
+
+
+	    return _v;
+	  }
+
+	  // We need that our library is globally accesible, then we save in the window
+	  if(typeof(window.myCustomDataLibrary) === 'undefined'){
+	    window.myCustomDataLibrary = customDataLibrary();
 	  }
 	})(window); // We send the window variable withing our function
 
