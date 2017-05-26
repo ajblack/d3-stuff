@@ -3,39 +3,94 @@
   function customDataLibrary(){
     var _v = {};
 
-    console.log('initializing data lib');
 
     _v.testfunction = function(){
 
     }
 
-    _v.getData = function(data){
+    //returns a two cell array with coordinate data
+    //first cell is the coordinates for individual points
+    //second cell is the coordinate pairs for constructing paths
 
+    _v.getData = function(data){
+/*
       var data =
       {
         "fields":
         [
+          {"name":"src_ip"},
+          {"name":"src_port"},
+          {"name":"protocol"},
+          {"name":"src_location"},
+          {"name":"dest_ip"},
+          {"name":"dest_port"},
+          {"name":"dest_location"},
+          {"name":"bytes"},
+          {"name":"bytes_in"},
+          {"name":"bytes_out"},
+          {"name":"rule"},
+          {"name":"action"},
+          {"name":"City"},
+          {"name":"Country"},
+          {"name":"Region"},
+          {"name":"_timediff"},
+          {"name":"end_lat"},
+          {"name":"end_lon"},
+          {"name":"geo_info"},
           {"name":"start_lat"},
           {"name":"start_lon"},
-          {"name":"end_lat"},
-          {"name":"end_lon"}
+          {"name":"status"}
         ],
         "rows":
         [
-          ["-122.6795","45.5128","-46.62890","-23.54640"],
-          ["-122.6795","45.5128","151.19820","-33.86120"],
-
-          //new ones
-          ["-122.6795","45.5128","72.82580","18.97500"],
-          ["-122.6795","45.5128","103.85650","1.28550"],
-          ["-122.6795","45.5128","-121.26924","37.33002"],
-          ["-122.6795","45.5128","-79.67436","39.38558"],
-          ["-122.6795","45.5128","126.73170","37.45360"],
-          ["-122.6795","45.5128","139.76770","35.64270"],
-          ["-122.6795","45.5128","-119.71617","45.89048"],
-          ["-122.6795","45.5128","-73.58330","45.50000"]
+          ["10.42.4.21","52689","udp","10.0.0.0-10.255.255.255","184.105.182.7","123","US","180","90","90","client-public","allowed","Fremont","United States","California","timediff","-121.96210","37.54970","Portland OR","-122.6795","45.5128","Unmanaged"],
+          ["10.42.4.21","54559","udp","10.0.0.0-10.255.255.255","45.127.112.2","123","US","180","90","90","client-public","allowed","San Fransisco","United States","California","timediff","-121.41280","37.77580","Portland OR","-122.6795","45.5128","Unmanaged"],
+          ["10.42.4.228","51175","tcp","10.0.0.0-10.255.255.255","93.171.216.118","80","NL","132","0","132","uc_dlp_mail_skarka","allowed","Amsterdam","Netherlands","North Holland","timediff","4.91670","52.35000","Portland OR","-122.6795","45.5128","Unmanaged"]
         ]
+      }*/
+
+      console.log("data coming into splunk: "+data);
+
+      var retCords = []
+      for(var i=0;i<data.rows.length*2;i++){
+        var ret = {"type":"Feature","geometry":{"type":"Point","coordinates":[0,0]},"properties":{"timestampMs":0}};
+        retCords.push(ret);
       }
+
+
+      var coordinatePairs = [];
+      for(var i=0;i<data.rows.length;i++){
+        var r1 = {
+          "type":"Feature",
+          "geometry":{"type":"Point","coordinates":[data.rows[i][19],data.rows[i][20]]},
+          "properties":
+            {
+              "src_ip":data.rows[i][0],
+              "src_port":data.rows[i][1],
+              "src_location":data.rows[i][3],
+              "protocol":data.rows[i][2],
+              "dest_ip":data.rows[i][4],
+              "dest_port":data.rows[i][5],
+              "dest_location":data.rows[i][6]
+            }
+        };
+        var r2 = {"type":"Feature","geometry":{"type":"Point","coordinates":[data.rows[i][16],data.rows[i][17]]},"properties":{}};
+        coordinatePairs.push([r1,r2])
+      }
+
+
+      //map the coordinates of each row value (set of two coordinates) individually to a retCords coordinate
+      var currentRet = 0;
+      for(var j=0;j<coordinatePairs.length;j++){
+        retCords[currentRet].geometry.coordinates[0] = coordinatePairs[j][0].geometry.coordinates[0];
+        retCords[currentRet].geometry.coordinates[1] = coordinatePairs[j][0].geometry.coordinates[1];
+        currentRet++;
+        retCords[currentRet].geometry.coordinates[0] = coordinatePairs[j][1].geometry.coordinates[0];
+        retCords[currentRet].geometry.coordinates[1] = coordinatePairs[j][1].geometry.coordinates[1];
+        currentRet++;
+      }
+
+      return [retCords, coordinatePairs];
     }
 
 
