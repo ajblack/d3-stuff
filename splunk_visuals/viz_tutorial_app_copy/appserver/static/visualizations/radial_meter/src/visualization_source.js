@@ -73,18 +73,6 @@ define([
           myCustomD3Library.createDataPanel();
           var detailWindow = document.getElementById('world-map-data-panel');
           var selectedPath = null;
-          /*
-          detailWindow.addEventListener('mouseover', function(e){
-            console.log(selectedPath);
-            selectedPath.setAttribute("fill","blue");
-          });
-          detailWindow.addEventListener('mouseleave', function(e){
-            console.log(selectedPath);
-            selectedPath.setAttribute("fill","red");
-          });
-          */
-
-
 
           //this is a definition for use later
           svg.append("svg:defs").append("svg:marker")
@@ -137,7 +125,8 @@ define([
               svg.append("path")
               //.attr("d", draw_curve(p1[0],p1[1],p2[0],p2[1],5))
               .attr("d", myCustomD3Library.draw_curve(p1[0],p1[1],p2[0],p2[1],5))
-              .style("stroke", "red")
+              //.style("stroke", "red")
+              .attr("stroke", "red")
               .attr("stroke-width", 2)
               .attr("class","customline")
               .attr("fill", "none")
@@ -168,7 +157,9 @@ define([
               .attr("marker-end","url(#triangle)")
               .on("mouseover", function(d){
                 //show selected path as blue
-                d3.select(this).transition().style("stroke", "blue").duration(300);
+
+                //d3.select(this).transition().style("stroke", "blue").duration(300);
+                this.setAttribute('stroke', 'blue');
                 selectedPath = this;
                 var modalWindow = document.getElementById('world-map-hover-modal');
                 var detailWindow = document.getElementById('world-map-data-panel');
@@ -220,13 +211,14 @@ define([
                 detailWindow.querySelector("#panel-start_lon").textContent = "Start Long: "+this.getAttribute("data-start_lon");
                 detailWindow.querySelector("#panel-status").textContent = "Status: "+this.getAttribute("data-status");
                 detailWindow.setAttribute('data-myid', this.getAttribute('data-myid'));
+                detailWindow.classList.add('hovered');
 
-                detailWindow.style.top = d3.event.clientY-10+'px';
-                detailWindow.style.left = d3.event.clientX+20+'px';
-
+                var svgRect = document.querySelector('#world-map-svg').getBoundingClientRect();
+                detailWindow.style.top = svgRect.top+'px';
+                detailWindow.style.left = svgRect.left+'px';
               })
               .on("mouseleave", function(d){
-                d3.select(this).transition().style("stroke", "red").duration(500);
+                this.setAttribute('stroke', 'red');
                 var modalWindow = document.getElementById('world-map-hover-modal');
                 var detailWindow = document.getElementById('world-map-data-panel');
                 detailWindow.classList.remove('hovered');

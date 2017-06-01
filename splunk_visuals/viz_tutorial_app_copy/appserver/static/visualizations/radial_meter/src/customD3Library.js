@@ -75,10 +75,15 @@
         });
         panelDiv.addEventListener('mouseover', function(e){
           panelDiv.classList.add('hovered');
-          //var mypath = document.querySelector(panelDiv.getAttribute())
+          var panelID = panelDiv.getAttribute('data-myid');
+          var matchingPath = window.document.querySelector('#world-map-svg').querySelector('[data-myid="'+panelID+'"]');
+          matchingPath.setAttribute('stroke', 'blue');
         });
         panelDiv.addEventListener('mouseleave', function(e){
           panelDiv.classList.remove('hovered');
+          var panelID = panelDiv.getAttribute('data-myid');
+          var matchingPath = window.document.querySelector('#world-map-svg').querySelector('[data-myid="'+panelID+'"]');
+          matchingPath.setAttribute('stroke', 'red');
         })
       }
       //dataPanelInit = true;

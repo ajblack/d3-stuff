@@ -1,4 +1,6 @@
-var world = 
+(function(window){
+
+	var world =
 {
 	"type": "Topology",
 	"objects": {
@@ -342846,3 +342848,20 @@ var world =
 		]
 	}
 }
+
+
+function worldGeoLibrary(){
+	var _v = {};
+
+
+	// Just create a property to our library object.
+	_v.worldGeo = function(){
+			return world;
+	};
+
+	return _v;
+}
+if(typeof(window.myWorldGeoLibrary) === 'undefined'){
+    window.myWorldGeoLibrary = worldGeoLibrary();
+}
+})(window);
