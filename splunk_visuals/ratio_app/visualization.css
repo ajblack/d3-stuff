@@ -1,0 +1,94 @@
+/*
+ * CSS rules for visualization.
+ * Class namespacing is good practice.
+ */
+
+ /* Formatting for text element*/
+ .meter-center-text {
+     font-size: 40px;
+     font-weight: 200;
+     font-family: "Helvetica Neue", Helvetica, sans-serif;
+ }
+
+ /* Center the main SVG in the page */
+ .splunk-radial-meter svg {
+     display: block;
+     margin: auto;
+ }
+
+
+ body {
+   background-color: white;
+
+
+ }
+
+
+ #vizContainer{
+   width:400px;
+   height:400px;
+   padding:10px;
+ }
+ #circleContainer{
+   width:200px;
+   height:200px;
+ }
+ #legendContainer{
+   background-color: white;
+   padding-top:10px;
+   max-width:200px;
+ }
+
+ #legendContainer .legendText{
+   padding:  5px;
+   font: .5em "Open Sans", sans-serif;
+ }
+
+ #legendContainer .legendColor{
+   border-radius: 50%;
+   width: .5em;
+   height: .5em;
+   display: inline-block;
+ }
+
+ .uAsset{
+   background: #e5e6e8;
+   opacity: .7;
+   fill:#e5e6e8;
+   fill-opacity:.7;
+ }
+
+ .uAssetCom{
+   background: grey;
+   opacity: .7;
+   fill: grey;
+   fill-opacity:.7;
+ }
+
+
+ #circle-hover-modal{
+   max-height: 500px;
+  background-color: rgb(47, 49, 51); /*dark grey*/
+  opacity: 0;
+  z-index: -1;
+  border-radius: 5px;
+  border: 1px solid black;
+  position: fixed;
+  display: inline;
+  transition: opacity .5s, z-index .1s;
+ }
+
+ #circle-hover-modal.hovered{
+   opacity:.8;
+   z-index:1000;
+ }
+
+ .modal-detail{
+   display: block;
+   padding-top:5px;
+   padding-bottom:5px;
+   padding-left:10px;
+   padding-right:10px;
+   color: white;
+   font:1em "Open Sans", sans-serif;
+ }
