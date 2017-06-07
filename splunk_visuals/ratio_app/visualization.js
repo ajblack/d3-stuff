@@ -58,7 +58,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            SplunkVisualizationBase,
 	            SplunkVisualizationUtils,
 	            d3,
-	            cD3
+	            rAD3
 	        ) {
 
 	    return SplunkVisualizationBase.extend({
@@ -84,55 +84,44 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        },
 
 	        updateView: function(data, config) {
+	          console.log('original data: ');
+	          console.log(data);
+	          var data = data;
+	          if(data.fields[0] == undefined || data.fields[0].name !== 'total_assets'){
+	            console.log('data doesnt match schema so making dummy data');
+	            data = {
+	              "fields":
+	              [
+	                {"name":"total_assets"},
+	                {"name":"total_man_assets"},
+	                {"name":"total_unman_assets"}
+	              ],
+	              "rows":
+	              [
+	                ['26','8','18']
+	              ]
+	            }
+	          }
+
+	          console.log('new data: ');
+	          console.log(data);
 
 	          this.$el.empty();
 	          //this is the original world map viz with 4 set points
 	          var anchor = this.el;
 	          anchor.classList.add('mySvgContainer');
 	          $(anchor).empty();
-	          var uAssets = 17;
-	          var uAssetsCom = 10;
-	          var vizContainer = window.document.createElement('div'),
-	            legendContainer = window.document.createElement('div'),
-	            uAssetLegendContainer = window.document.createElement('div');
-	            uAssetLegendColor = window.document.createElement('span'),
-	            uAssetLegendText = window.document.createElement('span'),
-	            uAssetComLegendContainer = window.document.createElement('div');
-	            uAssetComLegendColor = window.document.createElement('span'),
-	            uAssetComLegendText = window.document.createElement('spans');
-	          vizContainer.id = 'vizContainer';
-	          legendContainer.id = 'legendContainer';
-	          uAssetLegendText.id = 'uAssetLegendText';
-	          uAssetLegendColor.id = 'uAssetLegendColor';
-	          uAssetComLegendText.id = 'uAssetComLegendText';
-	          uAssetComLegendColor.id = 'uAssetComLegendColor';
-	          uAssetLegendText.classList.add('legendText');
-	          uAssetLegendColor.classList.add('legendColor','uAsset');
-	          uAssetComLegendText.classList.add('legendText');
-	          uAssetComLegendColor.classList.add('legendColor','uAssetCom');
+	          var totalAssets = data.rows[0][0];
+	          var manAssets = data.rows[0][1];
+	          var unmanAssets = data.rows[0][2];
 
 
 
-	          //window.document.getElementsByTagName('body')[0].appendChild(vizContainer);
-	          anchor.appendChild(vizContainer);
-	          var circleContainer = window.document.createElement('div')
-	          circleContainer.id = 'circleContainer';
-	          vizContainer.appendChild(circleContainer);
-	          vizContainer.appendChild(legendContainer);
-	          legendContainer.appendChild(uAssetLegendContainer);
-	          legendContainer.appendChild(uAssetComLegendContainer);
+	          myRatioAppD3Library.addComponents(anchor, data);
 
-	          uAssetLegendContainer.appendChild(uAssetLegendColor);
-	          uAssetLegendContainer.appendChild(uAssetLegendText);
 
-	          uAssetComLegendContainer.appendChild(uAssetComLegendColor);
-	          uAssetComLegendContainer.appendChild(uAssetComLegendText);
-
-	          uAssetLegendText.textContent = ' Unmanaged Assets';
-	          uAssetComLegendText.textContent = ' Unmanaged Assets with Outbound Communication';
-
-	          myCustomD3Library.createModal();
-	          myCustomD3Library.createCircles();
+	          myRatioAppD3Library.createModal();
+	          var modalDiv =  document.getElementById('circle-hover-modal');
 
 	          var handleMouseMove = function(e){
 	            var modalDiv =  document.getElementById('circle-hover-modal');
@@ -145,21 +134,44 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            .attr("height", 200)
 	            .attr('id', 'circleContainer')
 	            .append("g")
-	            .attr("transform", "translate(" + 100 + "," + 100 + ")")
+	            .attr("transform", "translate(" + 100 + "," + 100 + ")");
 
 	          var scale = d3.scaleLinear()
-	            .domain([0,uAssets])
+	            .domain([0,totalAssets])
 	            .range([0,100]);
 
-	          var jsonCircles = [{
-	            "radius": uAssets,
-	            "num": uAssets,
-	            "id": "uAssetCircle"
-	          }, {
-	            "radius": uAssetsCom,
-	            "num": uAssetsCom,
-	            "id": "uAssetComCircle"
-	          }];
+	          var totalAssetJson =
+	          {
+	            "radius": totalAssets,
+	            "num": totalAssets,
+	            "id": "totalAssetCircle",
+	            "text": 'Total Assets'
+	          },
+	          manAssetJson =
+	          {
+	            "radius": manAssets,
+	            "num": manAssets,
+	            "id": "manAssetCircle",
+	            "text":"Managed Assets"
+	          },
+	          unmanAssetJson =
+	          {
+	            "radius": unmanAssets,
+	            "num": unmanAssets,
+	            "id": "unmanAssetCircle",
+	            "text": 'Unmanaged Assets'
+	          };
+	          /*
+	          this logic ensures that the circles are added to the view in order from largest to smallest
+	          this makes it easy to register hover events that will hit the smallest ones since they will be up in DOM
+	          */
+	          var jsonCircles =[totalAssetJson];
+	          if(parseInt(manAssets) > parseInt(unmanAssets)){
+	            jsonCircles.push(manAssetJson, unmanAssetJson);
+	          }
+	          else{
+	            jsonCircles.push(unmanAssetJson, manAssetJson);
+	          }
 
 	          var circles = svgContainer.selectAll("circle")
 	            .data(jsonCircles)
@@ -168,7 +180,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	          var circleAttributes = circles
 	            .attr("r", function(d) {
-	              console.log('radius '+scale(d.radius));
 	              return scale(d.radius);
 	            })
 	            .attr("id", function(d) {
@@ -176,41 +187,40 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            })
 	            .attr("data-num", function(d){
 	              return d.num
+	            })
+	            .on('mouseover', function(d){
+	              this.classList.add('hovered');
+	              modalDiv.classList.add('hovered');
+	              document.querySelector("#circle-hover-modal-detail").textContent = d.text+": "+d.num;
+	              this.addEventListener('mousemove',handleMouseMove);
+	            })
+	            .on('mouseleave', function(d){
+	              this.classList.remove('hovered');
+	              modalDiv.classList.remove('hovered');
+	              this.removeEventListener('mousemove',handleMouseMove);
 	            });
 
-	            d3.select("#uAssetCircle")
-	              .attr("class", "uAsset");
-	            //radius of large circle - radius of small circle is hypotenuse in equation
-	            d3.select("#uAssetComCircle")
-	              .attr("class", "uAssetCom")
-	              .attr("cx", function(d) {
-	                return -Math.sqrt(Math.pow(100-scale(uAssetsCom),2)/2);
-	              })
-	              .attr("cy", function(d) {
-	                return -Math.sqrt(Math.pow(100-scale(uAssetsCom),2)/2);
-	              })
+	          d3.select("#totalAssetCircle")
+	            .attr('class', 'totalAsset');
 
-	          var modalDiv =  document.getElementById('circle-hover-modal');
-	          document.querySelector("#uAssetCircle").addEventListener('mouseover', function(e){
-	            modalDiv.classList.add('hovered');
-	            document.querySelector("#hover-modal-unmanaged-assets").textContent = "Unmanaged Assets: "+document.querySelector('#uAssetCircle').getAttribute('data-num');
-	            document.querySelector("#uAssetCircle").addEventListener('mousemove',handleMouseMove);
-	          });
-	          document.querySelector("#uAssetCircle").addEventListener('mouseleave', function(e){
-	            modalDiv.classList.remove('hovered');
-	            document.querySelector("#uAssetCircle").removeEventListener('mousemove',handleMouseMove);
-	          });
-	          document.querySelector("#uAssetComCircle").addEventListener('mouseover', function(e){
-	            modalDiv.classList.add('hovered');
-	            document.querySelector("#hover-modal-unmanaged-assets").textContent = "Unmanaged Assets with Outbound Traffic: "+document.querySelector('#uAssetComCircle').getAttribute('data-num');
-	            document.querySelector("#uAssetComCircle").addEventListener('mousemove',handleMouseMove);
-	          });
-	          document.querySelector("#uAssetComCircle").addEventListener('mouseleave', function(e){
-	            modalDiv.classList.remove('hovered');
-	            document.querySelector("#uAssetComCircle").removeEventListener('mousemove',handleMouseMove);
-	          });
-
-	        }
+	          d3.select("#unmanAssetCircle")
+	            .attr("class", "unmanAsset")
+	            .attr("cx", function(d) {
+	              return -Math.sqrt(Math.pow(100-scale(unmanAssets),2)/2);
+	            })
+	            .attr("cy", function(d) {
+	              return -Math.sqrt(Math.pow(100-scale(unmanAssets),2)/2);
+	            });
+	          //radius of large circle - radius of small circle is hypotenuse in equation
+	          d3.select("#manAssetCircle")
+	            .attr("class", "manAsset")
+	            .attr("cx", function(d) {
+	              return -Math.sqrt(Math.pow(100-scale(manAssets),2)/2);
+	            })
+	            .attr("cy", function(d) {
+	              return -Math.sqrt(Math.pow(100-scale(manAssets),2)/2);
+	            });
+	          }
 	      });
 	    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
 
@@ -28286,12 +28296,65 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	(function(window){
 
-	  function customD3Library(){
+	  function ratioAppD3Library(){
 	    var _v = {};
 
 	    var modalInit = false;
-	    var circlesInit = false;
+	    var componentsInit = false;
 
+	    _v.addComponents = function(anchor, data){
+	        var vizContainer = window.document.createElement('div'),
+	          legendContainer = window.document.createElement('div'),
+
+	          manAssetLegendContainer = window.document.createElement('div');
+	          manAssetLegendColor = window.document.createElement('span'),
+	          manAssetLegendText = window.document.createElement('span'),
+
+	          unmanAssetLegendContainer = window.document.createElement('div');
+	          unmanAssetLegendColor = window.document.createElement('span'),
+	          unmanAssetLegendText = window.document.createElement('span');
+
+	          totalAssetLegendContainer = window.document.createElement('div');
+	          totalAssetLegendColor = window.document.createElement('span'),
+	          totalAssetLegendText = window.document.createElement('span');
+
+	        vizContainer.id = 'vizContainer';
+	        legendContainer.id = 'legendContainer';
+	        manAssetLegendText.id = 'manAssetLegendText';
+	        manAssetLegendColor.id = 'manAssetLegendColor';
+	        unmanAssetLegendText.id = 'unmanAssetLegendText';
+	        unmanAssetLegendColor.id = 'unmanAssetLegendColor';
+	        totalAssetLegendText.id = 'totalAssetLegendText';
+	        totalAssetLegendColor.id = 'totalAssetLegendColor';
+
+	        manAssetLegendText.classList.add('legendText');
+	        manAssetLegendColor.classList.add('legendColor','manAsset');
+	        unmanAssetLegendText.classList.add('legendText');
+	        unmanAssetLegendColor.classList.add('legendColor','unmanAsset');
+	        totalAssetLegendText.classList.add('legendText');
+	        totalAssetLegendColor.classList.add('legendColor', 'totalAsset');
+	        anchor.appendChild(vizContainer);
+	        var circleContainer = window.document.createElement('div')
+	        circleContainer.id = 'circleContainer';
+	        vizContainer.appendChild(circleContainer);
+	        vizContainer.appendChild(legendContainer);
+	        legendContainer.appendChild(totalAssetLegendContainer);
+	        legendContainer.appendChild(manAssetLegendContainer);
+	        legendContainer.appendChild(unmanAssetLegendContainer);
+
+	        totalAssetLegendContainer.appendChild(totalAssetLegendColor);
+	        totalAssetLegendContainer.appendChild(totalAssetLegendText);
+
+	        manAssetLegendContainer.appendChild(manAssetLegendColor);
+	        manAssetLegendContainer.appendChild(manAssetLegendText);
+
+	        unmanAssetLegendContainer.appendChild(unmanAssetLegendColor);
+	        unmanAssetLegendContainer.appendChild(unmanAssetLegendText);
+
+	        totalAssetLegendText.textContent = data.rows[0][0]+' Total Assets';
+	        manAssetLegendText.textContent = data.rows[0][1]+' Mananaged Assets';
+	        unmanAssetLegendText.textContent = data.rows[0][2]+' Unmanaged Assets';
+	    }
 
 	    _v.createModal = function(){
 	      if(!modalInit){
@@ -28300,7 +28363,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	          modalDetail = window.document.createElement('span');
 
 	        modalDiv.id = 'circle-hover-modal';
-	        modalDetail.id = 'hover-modal-unmanaged-assets';
+	        modalDetail.id = 'circle-hover-modal-detail';
 	        modalDetail.classList.add('modal-detail');
 	        window.document.getElementsByTagName('body')[0].appendChild(modalDiv);
 	        modalDiv.appendChild(modalDetail);
@@ -28309,22 +28372,15 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	      modalInit = true;
 	    }
 
-	    _v.createCircles = function(totalAssets, managedAssets, unmanagedAssets){
 
-	      if(!circlesInit){
-	        
-	      }
-	      circlesInit = true;
-
-	    }
 	    return _v;
 	  }
 
 
 
 	  // We need that our library is globally accesible, then we save in the window
-	  if(typeof(window.myCustomD3Library) === 'undefined'){
-	    window.myCustomD3Library = customD3Library();
+	  if(typeof(window.myRatioAppD3Library) === 'undefined'){
+	    window.myRatioAppD3Library = ratioAppD3Library();
 	  }
 	})(window); // We send the window variable withing our function
 

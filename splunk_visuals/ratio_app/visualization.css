@@ -17,10 +17,15 @@
  }
 
 
- body {
+ #circleContainer body {
    background-color: white;
 
 
+ }
+
+ #circleContainer svg{
+   background-color: white;
+   border:none;
  }
 
 
@@ -41,7 +46,7 @@
 
  #legendContainer .legendText{
    padding:  5px;
-   font: .5em "Open Sans", sans-serif;
+   font: 1em "Open Sans", sans-serif;
  }
 
  #legendContainer .legendColor{
@@ -51,18 +56,30 @@
    display: inline-block;
  }
 
- .uAsset{
-   background: #e5e6e8;
-   opacity: .7;
-   fill:#e5e6e8;
-   fill-opacity:.7;
+ .manAsset{
+   background: red;
+   opacity: .5;
+   fill:red;
+   fill-opacity:.5;
  }
 
- .uAssetCom{
-   background: grey;
-   opacity: .7;
-   fill: grey;
-   fill-opacity:.7;
+ .unmanAsset{
+   background: blue;
+   opacity: .5;
+   fill: blue;
+   fill-opacity:.5;
+ }
+
+ .totalAsset{
+   background: green;
+   opacity: .5;
+   fill: green;
+   fill-opacity:.5;
+ }
+
+ .totalAsset.hovered, .unmanAsset.hovered, .manAsset.hovered{
+   opacity: 1;
+   z-index:900;
  }
 
 
