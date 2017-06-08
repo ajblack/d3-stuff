@@ -69,6 +69,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	    return SplunkVisualizationBase.extend({
 
+
+
 	        initialize: function() {
 	            // Save this.$el for convenience
 	            this.$el = $(this.el);
@@ -89,12 +91,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            });
 	        },
 
+
 	        updateView: function(data, config) {
+
+	          var modalInit = false;
+	          var dataPanelInit = false;
+
+	          var modalWindow, detailWindow, svgRect;
 
 	          this.$el.empty();
 	          //this is the original world map viz with 4 set points
 	          var anchor = this.el;
-	          anchor.classList.add('mySvgContainer');
+	          var anchorID = anchor.getAttribute('data-cid');
+	          //anchor.classList.add('mySvgContainer');
 	          $(anchor).empty();
 	          var world = myWorldGeoLibrary.worldGeo();
 	          //convert the coordinates into the features attribute of a geojson object
@@ -110,15 +119,71 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	              height = anchorDims.height;
 
 
+
 	          var svg = d3.select(anchor).append("svg")
 	              .attr("width", width)
 	              .attr("height", height)
-	              .attr("id", "world-map-svg");
+	              .attr("id", anchorID+"world-map-svg");
 
-	          myCustomD3Library.createModal();
-	          myCustomD3Library.createDataPanel();
-	          var detailWindow = document.getElementById('world-map-data-panel');
+	          //create modal
+	          if(!modalInit){
+	            modalWindow= window.document.createElement('div');
+	            modalWindow.id = anchorID+'world-map-hover-modal';
+	            modalWindow.classList.add('world-map-hover-modal');
+	            anchor.appendChild(modalWindow);
+	            $('#'+anchorID+"world-map-hover-modal" ).load( "/static/app/world_map_app/modal.html", function(){});
+	          }
+	          modalInit = true;
+
+	          //create data panel
+	          if(!dataPanelInit){
+	            panelWindow = window.document.createElement('div');
+	            panelWindow.id = anchorID+'world-map-data-panel';
+	            panelWindow.classList.add('world-map-data-panel');
+	            //build the id string for selection
+	            var panelID = '#'+anchorID+'world-map-data-panel';
+	            anchor.appendChild(panelWindow);
+
+	            myCustomD3Library.makeElementDraggable('.world-map-data-panel', anchor);
+
+
+
+
+	            $(panelID).load('/static/app/world_map_app/datapanel.html', function(){});
+	            panelWindow.addEventListener('contextmenu', function(e){
+	              e.preventDefault();
+	              panelWindow.classList.remove('visiblemodal');
+	            });
+	            panelWindow.addEventListener('mouseover', function(e){
+	              panelWindow.classList.add('hovered');
+	              var panelLocal = panelWindow.getAttribute('data-myid');
+	              console.log('panelLocal: '+panelLocal);
+	              var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelLocal+'"]');
+	              matchingPath.setAttribute('stroke', 'blue');
+	            });
+	            panelWindow.addEventListener('mouseleave', function(e){
+	              panelWindow.classList.remove('hovered');
+	              var panelLocal = panelWindow.getAttribute('data-myid');
+	              var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelLocal+'"]');
+	              matchingPath.setAttribute('stroke', 'red');
+	            });
+	            window.addEventListener('scroll', function(e){
+	              //var panelBox = document.querySelector(panelID).getBoundingClientRect();
+	              var panelBox = panelWindow.getBoundingClientRect();
+	              var anchorBox = document.querySelector('#'+anchorID+'world-map-svg').getBoundingClientRect();
+	              if(panelBox.top < anchorBox.top){
+	                panelWindow.style.top = anchorBox.top+'px';
+	              }
+	              else if(panelBox.bottom > anchorBox.bottom){
+	                panelWindow.style.top = anchorBox.bottom - panelBox.height+'px';
+	              }
+	            })
+	          }
+	          dataPanelInit = true;
+
 	          var selectedPath = null;
+
+
 
 	          //this is a definition for use later
 	          svg.append("svg:defs").append("svg:marker")
@@ -199,22 +264,19 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	              .attr("data-start_lat", coordinatePairs[i][0].properties.start_lat)
 	              .attr("data-start_lon", coordinatePairs[i][0].properties.start_lon)
 	              .attr("data-status", coordinatePairs[i][0].properties.status)
-	              .attr("data-myid",coordinatePairs[i][0].properties.myid)
+	              .attr("data-myid",function(){
+	                return anchorID+coordinatePairs[i][0].properties.myid;
+	              })
 	              .attr("marker-end","url(#triangle)")
 	              .on("mouseover", function(d){
-	                //show selected path as blue
-
-	                //d3.select(this).transition().style("stroke", "blue").duration(300);
 	                this.setAttribute('stroke', 'blue');
 	                selectedPath = this;
-	                var modalWindow = document.getElementById('world-map-hover-modal');
-	                var detailWindow = document.getElementById('world-map-data-panel');
-	                if(this.dataset.myid == detailWindow.dataset.myid){
-	                  detailWindow.classList.add('hovered');
+	                if(this.dataset.myid == panelWindow.dataset.myid){
+	                  panelWindow.classList.add('hovered');
 	                }
 	                //show the preview modal only if the detail window is not currently showing this data
 
-	                if(this.dataset.myid !== detailWindow.dataset.myid || !detailWindow.classList.contains('visiblemodal')){
+	                if(this.dataset.myid !== panelWindow.dataset.myid || !panelWindow.classList.contains('visiblemodal')){
 	                  modalWindow.classList.add("visiblemodal");
 	                  modalWindow.querySelector("#modal-src_ip").textContent = "Source IP: "+this.getAttribute("data-src_ip");
 	                  modalWindow.querySelector("#modal-src_port").textContent = "Source Port: "+this.getAttribute("data-src_port");
@@ -230,44 +292,42 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	              })
 	              .on("click", function(d){
-	                var modalWindow = document.getElementById('world-map-hover-modal');
-	                var detailWindow = document.getElementById('world-map-data-panel');
 	                modalWindow.classList.remove("visiblemodal");
-	                detailWindow.classList.add("visiblemodal");
-	                detailWindow.querySelector("#panel-src_ip").textContent = "Source IP: "+this.getAttribute("data-src_ip");
-	                detailWindow.querySelector("#panel-protocol").textContent = "Protocol: "+this.getAttribute("data-protocol");
-	                detailWindow.querySelector("#panel-src_location").textContent = "Source Location: "+this.getAttribute("data-src_location");
-	                detailWindow.querySelector("#panel-dest_ip").textContent = "Dest IP: "+this.getAttribute("data-dest_ip");
-	                detailWindow.querySelector("#panel-dest_port").textContent = "Dest Port: "+this.getAttribute("data-dest_port");
-	                detailWindow.querySelector("#panel-dest_location").textContent = "Dest Location: "+this.getAttribute("data-dest_location");
-	                detailWindow.querySelector("#panel-bytes").textContent = "Bytes: "+this.getAttribute("data-bytes");
-	                detailWindow.querySelector("#panel-bytes_in").textContent = "Bytes In: "+this.getAttribute("data-bytes_in");
-	                detailWindow.querySelector("#panel-bytes_out").textContent = "Bytes Out: "+this.getAttribute("data-bytes_out");
-	                detailWindow.querySelector("#panel-rule").textContent = "Rule: "+this.getAttribute("data-rule");
-	                detailWindow.querySelector("#panel-action").textContent = "Action: "+this.getAttribute("data-action");
-	                detailWindow.querySelector("#panel-City").textContent = "City: "+this.getAttribute("data-City");
-	                detailWindow.querySelector("#panel-Country").textContent = "Country: "+this.getAttribute("data-Country");
-	                detailWindow.querySelector("#panel-Region").textContent = "Region: "+this.getAttribute("data-Region");
-	                detailWindow.querySelector("#panel-_timediff").textContent = "Time Difference: "+this.getAttribute("data-_timediff");
-	                detailWindow.querySelector("#panel-end_lat").textContent = "End Lat: "+this.getAttribute("data-end_lat");
-	                detailWindow.querySelector("#panel-end_lon").textContent = "End Long: "+this.getAttribute("data-end_lon");
-	                detailWindow.querySelector("#panel-geo_info").textContent = "Geo Info: "+this.getAttribute("data-geo_info");
+	                panelWindow.classList.add("visiblemodal");
 
-	                detailWindow.querySelector("#panel-start_lat").textContent = "Start Lat: "+this.getAttribute("data-start_lat");
-	                detailWindow.querySelector("#panel-start_lon").textContent = "Start Long: "+this.getAttribute("data-start_lon");
-	                detailWindow.querySelector("#panel-status").textContent = "Status: "+this.getAttribute("data-status");
-	                detailWindow.setAttribute('data-myid', this.getAttribute('data-myid'));
-	                detailWindow.classList.add('hovered');
+	                panelWindow.querySelector("#panel-src_ip").textContent = "Source IP: "+this.getAttribute("data-src_ip");
+	                panelWindow.querySelector("#panel-protocol").textContent = "Protocol: "+this.getAttribute("data-protocol");
+	                panelWindow.querySelector("#panel-src_location").textContent = "Source Location: "+this.getAttribute("data-src_location");
+	                panelWindow.querySelector("#panel-dest_ip").textContent = "Dest IP: "+this.getAttribute("data-dest_ip");
+	                panelWindow.querySelector("#panel-dest_port").textContent = "Dest Port: "+this.getAttribute("data-dest_port");
+	                panelWindow.querySelector("#panel-dest_location").textContent = "Dest Location: "+this.getAttribute("data-dest_location");
+	                panelWindow.querySelector("#panel-bytes").textContent = "Bytes: "+this.getAttribute("data-bytes");
+	                panelWindow.querySelector("#panel-bytes_in").textContent = "Bytes In: "+this.getAttribute("data-bytes_in");
+	                panelWindow.querySelector("#panel-bytes_out").textContent = "Bytes Out: "+this.getAttribute("data-bytes_out");
+	                panelWindow.querySelector("#panel-rule").textContent = "Rule: "+this.getAttribute("data-rule");
+	                panelWindow.querySelector("#panel-action").textContent = "Action: "+this.getAttribute("data-action");
+	                panelWindow.querySelector("#panel-City").textContent = "City: "+this.getAttribute("data-City");
+	                panelWindow.querySelector("#panel-Country").textContent = "Country: "+this.getAttribute("data-Country");
+	                panelWindow.querySelector("#panel-Region").textContent = "Region: "+this.getAttribute("data-Region");
+	                panelWindow.querySelector("#panel-_timediff").textContent = "Time Difference: "+this.getAttribute("data-_timediff");
+	                panelWindow.querySelector("#panel-end_lat").textContent = "End Lat: "+this.getAttribute("data-end_lat");
+	                panelWindow.querySelector("#panel-end_lon").textContent = "End Long: "+this.getAttribute("data-end_lon");
+	                panelWindow.querySelector("#panel-geo_info").textContent = "Geo Info: "+this.getAttribute("data-geo_info");
 
-	                var svgRect = document.querySelector('#world-map-svg').getBoundingClientRect();
-	                detailWindow.style.top = d3.event.clientY-10+'px';
-	                detailWindow.style.left = d3.event.clientX+20+'px';
+	                panelWindow.querySelector("#panel-start_lat").textContent = "Start Lat: "+this.getAttribute("data-start_lat");
+	                panelWindow.querySelector("#panel-start_lon").textContent = "Start Long: "+this.getAttribute("data-start_lon");
+	                panelWindow.querySelector("#panel-status").textContent = "Status: "+this.getAttribute("data-status");
+	                panelWindow.setAttribute('data-myid', this.getAttribute('data-myid'));
+	                panelWindow.classList.add('hovered');
+
+	                //anchor.getBoundingClientRect();
+	                //document.querySelector('#'+anchorID+'world-map-svg').getBoundingClientRect();
+	                panelWindow.style.top = d3.event.clientY-10+'px';
+	                panelWindow.style.left = d3.event.clientX+20+'px';
 	              })
 	              .on("mouseleave", function(d){
 	                this.setAttribute('stroke', 'red');
-	                var modalWindow = document.getElementById('world-map-hover-modal');
-	                var detailWindow = document.getElementById('world-map-data-panel');
-	                detailWindow.classList.remove('hovered');
+	                panelWindow.classList.remove('hovered');
 	                modalWindow.classList.remove("visiblemodal");
 	              });
 	            }
@@ -373049,7 +373109,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	      return ret;
 	    }
 
-	    _v.createModal = function(){
+	    _v.makeElementDraggable = function(elem, anchor){
+	      $('.world-map-data-panel').draggable({
+	        containment:anchor
+	      });
+	    }
+	/*
+	    _v.createModal = function(anchor, anchorID){
 	      if(!modalInit){
 
 	        var modalDiv = window.document.createElement('div');
@@ -373061,22 +373127,23 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	      modalInit = true;
 	    }
 
-	    _v.createDataPanel = function(){
+	    _v.createDataPanel = function(anchor, anchorID){
 
 	      if(!dataPanelInit){
 	        var panelDiv = window.document.createElement('div');
-	        panelDiv.id = 'world-map-data-panel';
+	        panelDiv.id = anchorID+'world-map-data-panel';
+	        var panelID = '#'+anchorID+'world-map-data-panel';
 
 	      //  console.log("parent element: ")+document.getElementsByClassName('splunk-radial-meter')[0];
 
 	        window.document.getElementsByTagName('body')[0].appendChild(panelDiv);
 
-	        $( "#world-map-data-panel").draggable({
-	          containment:".splunk-radial-meter"
+	        $(panelID).draggable({
+	          containment:panelID
 	        });
 
 
-	        $("#world-map-data-panel").load('/static/app/world_map_app/datapanel.html', function(){});
+	        $(panelID).load('/static/app/world_map_app/datapanel.html', function(){});
 	        panelDiv.addEventListener('contextmenu', function(e){
 	          e.preventDefault();
 	          panelDiv.classList.remove('visiblemodal');
@@ -373084,18 +373151,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        panelDiv.addEventListener('mouseover', function(e){
 	          panelDiv.classList.add('hovered');
 	          var panelID = panelDiv.getAttribute('data-myid');
-	          var matchingPath = window.document.querySelector('#world-map-svg').querySelector('[data-myid="'+panelID+'"]');
+	          var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelID+'"]');
 	          matchingPath.setAttribute('stroke', 'blue');
 	        });
 	        panelDiv.addEventListener('mouseleave', function(e){
 	          panelDiv.classList.remove('hovered');
 	          var panelID = panelDiv.getAttribute('data-myid');
-	          var matchingPath = window.document.querySelector('#world-map-svg').querySelector('[data-myid="'+panelID+'"]');
+	          var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelID+'"]');
 	          matchingPath.setAttribute('stroke', 'red');
 	        });
 	        window.addEventListener('scroll', function(e){
-	          var panelBox = document.querySelector('#world-map-data-panel').getBoundingClientRect();
-	          var anchorBox = document.querySelector('.mySvgContainer').getBoundingClientRect();
+	          var panelBox = document.querySelector(panelID).getBoundingClientRect();
+	          var anchorBox = document.querySelector(anchorID).getBoundingClientRect();
 
 						//console.log("panel top: "+panelBox.top+" and anchorTop: "+anchorBox.top);
 	          //console.log("panel bottom: "+panelBox.bottom+" and anchorTop: "+anchorBox.bottom);
@@ -373110,7 +373177,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	      dataPanelInit = true;
 
 	    }
-
+	*/
 	    return _v;
 	  }
 
@@ -373136,6 +373203,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    _v.testfunction = function(){
 
 	    }
+
+	  
 
 	    //returns a two cell array with coordinate data
 	    //first cell is the coordinates for individual points

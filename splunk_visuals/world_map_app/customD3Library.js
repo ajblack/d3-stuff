@@ -41,7 +41,13 @@
       return ret;
     }
 
-    _v.createModal = function(){
+    _v.makeElementDraggable = function(elem, anchor){
+      $('.world-map-data-panel').draggable({
+        containment:anchor
+      });
+    }
+/*
+    _v.createModal = function(anchor, anchorID){
       if(!modalInit){
 
         var modalDiv = window.document.createElement('div');
@@ -53,22 +59,23 @@
       modalInit = true;
     }
 
-    _v.createDataPanel = function(){
+    _v.createDataPanel = function(anchor, anchorID){
 
       if(!dataPanelInit){
         var panelDiv = window.document.createElement('div');
-        panelDiv.id = 'world-map-data-panel';
+        panelDiv.id = anchorID+'world-map-data-panel';
+        var panelID = '#'+anchorID+'world-map-data-panel';
 
       //  console.log("parent element: ")+document.getElementsByClassName('splunk-radial-meter')[0];
 
         window.document.getElementsByTagName('body')[0].appendChild(panelDiv);
 
-        $( "#world-map-data-panel").draggable({
-          containment:".splunk-radial-meter"
+        $(panelID).draggable({
+          containment:panelID
         });
 
 
-        $("#world-map-data-panel").load('/static/app/world_map_app/datapanel.html', function(){});
+        $(panelID).load('/static/app/world_map_app/datapanel.html', function(){});
         panelDiv.addEventListener('contextmenu', function(e){
           e.preventDefault();
           panelDiv.classList.remove('visiblemodal');
@@ -76,18 +83,18 @@
         panelDiv.addEventListener('mouseover', function(e){
           panelDiv.classList.add('hovered');
           var panelID = panelDiv.getAttribute('data-myid');
-          var matchingPath = window.document.querySelector('#world-map-svg').querySelector('[data-myid="'+panelID+'"]');
+          var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelID+'"]');
           matchingPath.setAttribute('stroke', 'blue');
         });
         panelDiv.addEventListener('mouseleave', function(e){
           panelDiv.classList.remove('hovered');
           var panelID = panelDiv.getAttribute('data-myid');
-          var matchingPath = window.document.querySelector('#world-map-svg').querySelector('[data-myid="'+panelID+'"]');
+          var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelID+'"]');
           matchingPath.setAttribute('stroke', 'red');
         });
         window.addEventListener('scroll', function(e){
-          var panelBox = document.querySelector('#world-map-data-panel').getBoundingClientRect();
-          var anchorBox = document.querySelector('.mySvgContainer').getBoundingClientRect();
+          var panelBox = document.querySelector(panelID).getBoundingClientRect();
+          var anchorBox = document.querySelector(anchorID).getBoundingClientRect();
 
 					//console.log("panel top: "+panelBox.top+" and anchorTop: "+anchorBox.top);
           //console.log("panel bottom: "+panelBox.bottom+" and anchorTop: "+anchorBox.bottom);
@@ -102,7 +109,7 @@
       dataPanelInit = true;
 
     }
-
+*/
     return _v;
   }
 
