@@ -51,7 +51,7 @@
    border-bottom-right-radius: 10px;
    border-bottom-left-radius: 10px;
    border: 2px solid blue;
-   position: absolute;
+   position: fixed;
    display: inline;
    transition: opacity .5s, z-index .1s;
  }
@@ -69,7 +69,7 @@
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;
     border: 2px solid red;
-    position: absolute;
+    position: fixed;
     display: inline;
     transition: opacity .5s, z-index .1s;
  }

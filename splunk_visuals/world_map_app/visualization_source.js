@@ -49,6 +49,7 @@ define([
           this.$el.empty();
           //this is the original world map viz with 4 set points
           var anchor = this.el;
+          anchor.classList.add('mySvgContainer');
           $(anchor).empty();
           var world = myWorldGeoLibrary.worldGeo();
           //convert the coordinates into the features attribute of a geojson object
@@ -214,8 +215,8 @@ define([
                 detailWindow.classList.add('hovered');
 
                 var svgRect = document.querySelector('#world-map-svg').getBoundingClientRect();
-                detailWindow.style.top = svgRect.top+'px';
-                detailWindow.style.left = svgRect.left+'px';
+                detailWindow.style.top = d3.event.clientY-10+'px';
+                detailWindow.style.left = d3.event.clientX+20+'px';
               })
               .on("mouseleave", function(d){
                 this.setAttribute('stroke', 'red');

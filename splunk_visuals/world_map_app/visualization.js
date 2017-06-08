@@ -94,6 +94,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	          this.$el.empty();
 	          //this is the original world map viz with 4 set points
 	          var anchor = this.el;
+	          anchor.classList.add('mySvgContainer');
 	          $(anchor).empty();
 	          var world = myWorldGeoLibrary.worldGeo();
 	          //convert the coordinates into the features attribute of a geojson object
@@ -259,8 +260,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	                detailWindow.classList.add('hovered');
 
 	                var svgRect = document.querySelector('#world-map-svg').getBoundingClientRect();
-	                detailWindow.style.top = svgRect.top+'px';
-	                detailWindow.style.left = svgRect.left+'px';
+	                detailWindow.style.top = d3.event.clientY-10+'px';
+	                detailWindow.style.left = d3.event.clientX+20+'px';
 	              })
 	              .on("mouseleave", function(d){
 	                this.setAttribute('stroke', 'red');
@@ -373054,7 +373055,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        var modalDiv = window.document.createElement('div');
 	        modalDiv.id = 'world-map-hover-modal';
 	        window.document.getElementsByTagName('body')[0].appendChild(modalDiv);
-	        $("#world-map-hover-modal" ).load( "/static/app/viz_tutorial_app/modal.html", function(){});
+	        $("#world-map-hover-modal" ).load( "/static/app/world_map_app/modal.html", function(){});
 
 	      }
 	      modalInit = true;
@@ -373075,7 +373076,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        });
 
 
-	        $("#world-map-data-panel").load('/static/app/viz_tutorial_app/datapanel.html', function(){});
+	        $("#world-map-data-panel").load('/static/app/world_map_app/datapanel.html', function(){});
 	        panelDiv.addEventListener('contextmenu', function(e){
 	          e.preventDefault();
 	          panelDiv.classList.remove('visiblemodal');
@@ -373091,9 +373092,22 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	          var panelID = panelDiv.getAttribute('data-myid');
 	          var matchingPath = window.document.querySelector('#world-map-svg').querySelector('[data-myid="'+panelID+'"]');
 	          matchingPath.setAttribute('stroke', 'red');
+	        });
+	        window.addEventListener('scroll', function(e){
+	          var panelBox = document.querySelector('#world-map-data-panel').getBoundingClientRect();
+	          var anchorBox = document.querySelector('.mySvgContainer').getBoundingClientRect();
+
+						//console.log("panel top: "+panelBox.top+" and anchorTop: "+anchorBox.top);
+	          //console.log("panel bottom: "+panelBox.bottom+" and anchorTop: "+anchorBox.bottom);
+	          if(panelBox.top < anchorBox.top){
+	            panelDiv.style.top = anchorBox.top+'px';
+	          }
+	          else if(panelBox.bottom > anchorBox.bottom){
+	            panelDiv.style.top = anchorBox.bottom - panelBox.height+'px';
+	          }
 	        })
 	      }
-	      //dataPanelInit = true;
+	      dataPanelInit = true;
 
 	    }
 
