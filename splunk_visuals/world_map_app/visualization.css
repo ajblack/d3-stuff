@@ -10,11 +10,6 @@
      font-family: "Helvetica Neue", Helvetica, sans-serif;
  }
 
- /* Center the main SVG in the page */
- .splunk-radial-meter svg {
-     display: block;
-     margin: auto;
- }
 
 
  body {
@@ -41,7 +36,7 @@
    fill: red;
  }
 
- #world-map-hover-modal{
+ .world-map-hover-modal{
   max-width: 300px;
   max-height: 500px;
    background-color: rgb(47, 49, 51); /*dark grey*/
@@ -56,7 +51,7 @@
    transition: opacity .5s, z-index .1s;
  }
 
- #world-map-data-panel{
+ .world-map-data-panel{
    left:100px;
    top:100px;
    max-width: 300px;
@@ -68,11 +63,23 @@
     border-top-right-radius: 10px;
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;
-    border: 2px solid red;
     position: fixed;
     display: inline;
     transition: opacity .5s, z-index .1s;
  }
+
+.world-map-data-panel.managed{
+  border: 2px solid green;
+}
+
+.world-map-data-panel.unmanaged{
+  border: 2px solid red;
+}
+
+.world-map-data-panel.hovered{
+  border: 2px solid blue !important;
+}
+
 /*padding does top right bottom left*/
  .modal-detail{
    display: block;
@@ -100,14 +107,11 @@
  }
 
 
-#world-map-hover-modal.visiblemodal{
+.world-map-hover-modal.visiblemodal{
   opacity: .8;
   z-index: 1000;
 }
-#world-map-data-panel.visiblemodal{
+.world-map-data-panel.visiblemodal{
   opacity: .8;
   z-index: 1000;
-}
-#world-map-data-panel.hovered{
-  border: 2px solid blue;
 }

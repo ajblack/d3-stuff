@@ -8,13 +8,13 @@
 
     }
 
-  
+
 
     //returns a two cell array with coordinate data
     //first cell is the coordinates for individual points
     //second cell is the coordinate pairs for constructing paths
 
-    _v.getData = function(data){
+    _v.getData = function(data, dataShowing){
 
       var data =
       {
@@ -47,7 +47,7 @@
         [
           ["10.42.4.21","52689","udp","10.0.0.0-10.255.255.255","184.105.182.7","123","US","180","90","90","client-public","allowed","Fremont","United States","California","timediff","-121.96210","37.54970","Portland OR","-122.6795","45.5128","Unmanaged"],
           ["10.42.4.21","54559","udp","10.0.0.0-10.255.255.255","45.127.112.2","123","US","180","90","90","client-public","allowed","San Fransisco","United States","California","timediff","-121.41280","37.77580","Portland OR","-122.6795","45.5128","Unmanaged"],
-          ["10.42.4.228","51175","tcp","10.0.0.0-10.255.255.255","93.171.216.118","80","NL","132","0","132","uc_dlp_mail_skarka","allowed","Amsterdam","Netherlands","North Holland","timediff","4.91670","52.35000","Portland OR","-122.6795","45.5128","Unmanaged"]
+          ["10.42.4.228","51175","tcp","10.0.0.0-10.255.255.255","93.171.216.118","80","NL","132","0","132","uc_dlp_mail_skarka","allowed","Amsterdam","Netherlands","North Holland","timediff","4.91670","52.35000","Portland OR","-122.6795","45.5128","Managed"]
         ]
       }
 

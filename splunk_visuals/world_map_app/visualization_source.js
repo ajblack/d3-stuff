@@ -51,6 +51,7 @@ define([
 
           var modalInit = false;
           var dataPanelInit = false;
+          var dataShowing = 'unmanaged';
 
           var modalWindow, detailWindow, svgRect;
 
@@ -64,7 +65,7 @@ define([
           //convert the coordinates into the features attribute of a geojson object
           var latlong = {"type":"FeatureCollection", "features":[]}
 
-          var dataRet = myCustomDataLibrary.getData(data);
+          var dataRet = myCustomDataLibrary.getData(data, dataShowing);
           latlong.features = dataRet[0];
           var coordinatePairs = dataRet[1];
           //latlong.features = retCords;
@@ -105,6 +106,17 @@ define([
             panelWindow.addEventListener('contextmenu', function(e){
               e.preventDefault();
               panelWindow.classList.remove('visiblemodal');
+              var panelLocal = panelWindow.getAttribute('data-myid');
+              console.log('panelLocal: '+panelLocal);
+              var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelLocal+'"]');
+              if(matchingPath.dataset.status == "Unmanaged"){
+                matchingPath.setAttribute('stroke', 'red');
+                matchingPath.setAttribute('marker-end','url(#triangleUnmanaged)');
+              }
+              else{
+                matchingPath.setAttribute('stroke', 'green');
+                matchingPath.setAttribute('marker-end','url(#triangleManaged)');
+              }
             });
             panelWindow.addEventListener('mouseover', function(e){
               panelWindow.classList.add('hovered');
@@ -112,12 +124,20 @@ define([
               console.log('panelLocal: '+panelLocal);
               var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelLocal+'"]');
               matchingPath.setAttribute('stroke', 'blue');
+              matchingPath.setAttribute('marker-end','url(#triangleSelected)');
             });
             panelWindow.addEventListener('mouseleave', function(e){
               panelWindow.classList.remove('hovered');
               var panelLocal = panelWindow.getAttribute('data-myid');
               var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelLocal+'"]');
-              matchingPath.setAttribute('stroke', 'red');
+              if(matchingPath.dataset.status == "Unmanaged"){
+                matchingPath.setAttribute('stroke', 'red');
+                matchingPath.setAttribute('marker-end','url(#triangleUnmanaged)');
+              }
+              else{
+                matchingPath.setAttribute('stroke', 'green');
+                matchingPath.setAttribute('marker-end','url(#triangleManaged)');
+              }
             });
             window.addEventListener('scroll', function(e){
               //var panelBox = document.querySelector(panelID).getBoundingClientRect();
@@ -133,13 +153,12 @@ define([
           }
           dataPanelInit = true;
 
-          var selectedPath = null;
 
 
 
           //this is a definition for use later
           svg.append("svg:defs").append("svg:marker")
-              .attr("id", "triangle")
+              .attr("id", "triangleManaged")
               .attr("refX", 6)
               .attr("refY", 2)
               .attr("markerWidth", 30)
@@ -147,7 +166,29 @@ define([
               .attr("orient", "auto")
               .append("path")
               .attr("d", "M 0 0 4 2 0 4 1 2")
-              .style("fill", "red");
+              .attr("fill", "green");
+
+          svg.append("svg:defs").append("svg:marker")
+              .attr("id", "triangleUnmanaged")
+              .attr("refX", 6)
+              .attr("refY", 2)
+              .attr("markerWidth", 30)
+              .attr("markerHeight", 30)
+              .attr("orient", "auto")
+              .append("path")
+              .attr("d", "M 0 0 4 2 0 4 1 2")
+              .attr("fill", "red");
+
+          svg.append("svg:defs").append("svg:marker")
+              .attr("id", "triangleSelected")
+              .attr("refX", 6)
+              .attr("refY", 2)
+              .attr("markerWidth", 30)
+              .attr("markerHeight", 30)
+              .attr("orient", "auto")
+              .append("path")
+              .attr("d", "M 0 0 4 2 0 4 1 2")
+              .attr("fill", "blue");
 
 
           var projection = d3.geoEquirectangular()
@@ -172,14 +213,14 @@ define([
               .enter()
               .append("path")
               .attr("d", pathGenerator);
-
+/*
           svg.append( "g" )
             .attr("class","pin")
             .selectAll("path")
             .data( latlong.features)
             .enter()
             .append("path")
-            .attr( "d", pathGenerator);
+            .attr( "d", pathGenerator);*/
 
             //using the coordinate pair object construct lines between coordinates
             for(var i=0;i<coordinatePairs.length;i++){
@@ -188,12 +229,16 @@ define([
               svg.append("path")
               //.attr("d", draw_curve(p1[0],p1[1],p2[0],p2[1],5))
               .attr("d", myCustomD3Library.draw_curve(p1[0],p1[1],p2[0],p2[1],5))
-              //.style("stroke", "red")
-              .attr("stroke", "red")
-              .attr("stroke-width", 2)
-              .attr("class","customline")
+              .attr("stroke-width", "2px")
+              .attr("stroke", function(d){
+                if(coordinatePairs[i][0].properties.status === "Unmanaged"){
+                  return 'red';
+                }
+                else{
+                  return 'green';
+                }
+              })
               .attr("fill", "none")
-
               .attr("data-src_ip", coordinatePairs[i][0].properties.src_ip)
               .attr("data-src_port", coordinatePairs[i][0].properties.src_port)
               .attr("data-protocol", coordinatePairs[i][0].properties.protocol)
@@ -219,68 +264,23 @@ define([
               .attr("data-myid",function(){
                 return anchorID+coordinatePairs[i][0].properties.myid;
               })
-              .attr("marker-end","url(#triangle)")
+              .attr("marker-end", function(d){
+                if(coordinatePairs[i][0].properties.status === "Unmanaged"){
+                  return 'url(#triangleUnmanaged)';
+                }
+                else{
+                  return 'url(#triangleManaged)';
+                }
+              })
               .on("mouseover", function(d){
-                this.setAttribute('stroke', 'blue');
-                selectedPath = this;
-                if(this.dataset.myid == panelWindow.dataset.myid){
-                  panelWindow.classList.add('hovered');
-                }
-                //show the preview modal only if the detail window is not currently showing this data
-
-                if(this.dataset.myid !== panelWindow.dataset.myid || !panelWindow.classList.contains('visiblemodal')){
-                  modalWindow.classList.add("visiblemodal");
-                  modalWindow.querySelector("#modal-src_ip").textContent = "Source IP: "+this.getAttribute("data-src_ip");
-                  modalWindow.querySelector("#modal-src_port").textContent = "Source Port: "+this.getAttribute("data-src_port");
-                  modalWindow.querySelector("#modal-src_location").textContent = "Source Location: "+this.getAttribute("data-src_location");
-                  modalWindow.querySelector("#modal-protocol").textContent = "Protocol: "+this.getAttribute("data-protocol");
-                  modalWindow.querySelector("#modal-dest_ip").textContent = "Dest IP: "+this.getAttribute("data-dest_ip");
-                  modalWindow.querySelector("#modal-dest_port").textContent = "Dest Port: "+this.getAttribute("data-dest_port");
-                  modalWindow.querySelector("#modal-dest_location").textContent = "Dest Location: "+this.getAttribute("data-dest_location");
-                  modalWindow.setAttribute('data-myid', this.getAttribute('data-myid'));
-                  modalWindow.style.top = d3.event.clientY-10+'px';
-                  modalWindow.style.left = d3.event.clientX+20+'px';
-                }
-
+                myCustomD3Library.handlePathMouseover(this, modalWindow, panelWindow, d3.event);
               })
               .on("click", function(d){
-                modalWindow.classList.remove("visiblemodal");
-                panelWindow.classList.add("visiblemodal");
-
-                panelWindow.querySelector("#panel-src_ip").textContent = "Source IP: "+this.getAttribute("data-src_ip");
-                panelWindow.querySelector("#panel-protocol").textContent = "Protocol: "+this.getAttribute("data-protocol");
-                panelWindow.querySelector("#panel-src_location").textContent = "Source Location: "+this.getAttribute("data-src_location");
-                panelWindow.querySelector("#panel-dest_ip").textContent = "Dest IP: "+this.getAttribute("data-dest_ip");
-                panelWindow.querySelector("#panel-dest_port").textContent = "Dest Port: "+this.getAttribute("data-dest_port");
-                panelWindow.querySelector("#panel-dest_location").textContent = "Dest Location: "+this.getAttribute("data-dest_location");
-                panelWindow.querySelector("#panel-bytes").textContent = "Bytes: "+this.getAttribute("data-bytes");
-                panelWindow.querySelector("#panel-bytes_in").textContent = "Bytes In: "+this.getAttribute("data-bytes_in");
-                panelWindow.querySelector("#panel-bytes_out").textContent = "Bytes Out: "+this.getAttribute("data-bytes_out");
-                panelWindow.querySelector("#panel-rule").textContent = "Rule: "+this.getAttribute("data-rule");
-                panelWindow.querySelector("#panel-action").textContent = "Action: "+this.getAttribute("data-action");
-                panelWindow.querySelector("#panel-City").textContent = "City: "+this.getAttribute("data-City");
-                panelWindow.querySelector("#panel-Country").textContent = "Country: "+this.getAttribute("data-Country");
-                panelWindow.querySelector("#panel-Region").textContent = "Region: "+this.getAttribute("data-Region");
-                panelWindow.querySelector("#panel-_timediff").textContent = "Time Difference: "+this.getAttribute("data-_timediff");
-                panelWindow.querySelector("#panel-end_lat").textContent = "End Lat: "+this.getAttribute("data-end_lat");
-                panelWindow.querySelector("#panel-end_lon").textContent = "End Long: "+this.getAttribute("data-end_lon");
-                panelWindow.querySelector("#panel-geo_info").textContent = "Geo Info: "+this.getAttribute("data-geo_info");
-
-                panelWindow.querySelector("#panel-start_lat").textContent = "Start Lat: "+this.getAttribute("data-start_lat");
-                panelWindow.querySelector("#panel-start_lon").textContent = "Start Long: "+this.getAttribute("data-start_lon");
-                panelWindow.querySelector("#panel-status").textContent = "Status: "+this.getAttribute("data-status");
-                panelWindow.setAttribute('data-myid', this.getAttribute('data-myid'));
-                panelWindow.classList.add('hovered');
-
-                //anchor.getBoundingClientRect();
-                //document.querySelector('#'+anchorID+'world-map-svg').getBoundingClientRect();
-                panelWindow.style.top = d3.event.clientY-10+'px';
-                panelWindow.style.left = d3.event.clientX+20+'px';
+                myCustomD3Library.handlePathClick(this, modalWindow, panelWindow, d3.event);
               })
               .on("mouseleave", function(d){
-                this.setAttribute('stroke', 'red');
-                panelWindow.classList.remove('hovered');
-                modalWindow.classList.remove("visiblemodal");
+                myCustomD3Library.handlePathMouseleave(this, modalWindow, panelWindow, d3.event);
+
               });
             }
           }
