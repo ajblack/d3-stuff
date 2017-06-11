@@ -3,9 +3,25 @@
   function customDataLibrary(){
     var _v = {};
 
+    var dataShowing = "All";
+
 
     _v.testfunction = function(){
 
+    }
+
+    _v.getDataShowing = function(){
+      return dataShowing;
+    }
+
+    _v.setDataShowing = function(input){
+      if(dataShowing === "All" || dataShowing === "Unmanaged" || dataShowing === "Managed"){
+        dataShowing = input;
+        return input;
+      }
+      else{
+        return "All";
+      }
     }
 
 

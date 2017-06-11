@@ -115,3 +115,21 @@
   opacity: .8;
   z-index: 1000;
 }
+
+#toggleContainer{
+  position:absolute;
+  padding: 10px;
+  max-width:200px;
+  height:100%;
+}
+
+#toggleContainer span{
+  font:1em "Open Sans", sans-serif;
+  display: block;
+  margin-top:10px;
+  padding:10px;
+  text-align:center;
+  background-color: grey;
+  border-radius:5px;
+  cursor: pointer;
+}

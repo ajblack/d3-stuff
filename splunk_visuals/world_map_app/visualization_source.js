@@ -48,12 +48,19 @@ define([
 
 
         updateView: function(data, config) {
-
+          var controlsInit = false;
           var modalInit = false;
           var dataPanelInit = false;
-          var dataShowing = 'unmanaged';
 
-          var modalWindow, detailWindow, svgRect;
+          //datashowing value is either unmanaged, managed, or all
+          var dataShowing = myCustomDataLibrary.getDataShowing();
+          console.log('Data Showing is : '+dataShowing);
+          dataShowing = myCustomDataLibrary.setDataShowing("Unmanaged");
+          console.log('Data Showing is : '+dataShowing);
+          dataShowing = myCustomDataLibrary.setDataShowing("Managed");
+          console.log('Data Showing is : '+dataShowing);
+
+          var modalWindow, detailWindow, svgRect, controlsWindow, svg, controlsDim;
 
           this.$el.empty();
           //this is the original world map viz with 4 set points
@@ -66,7 +73,7 @@ define([
           var latlong = {"type":"FeatureCollection", "features":[]}
 
           var dataRet = myCustomDataLibrary.getData(data, dataShowing);
-          latlong.features = dataRet[0];
+          latlong.features = dataRet[1][1];
           var coordinatePairs = dataRet[1];
           //latlong.features = retCords;
 
@@ -75,10 +82,37 @@ define([
               height = anchorDims.height;
 
 
+          //create controls container
+          if(!controlsInit){
 
-          var svg = d3.select(anchor).append("svg")
-              .attr("width", width)
+            // 6/11 manually creating control panel because jquery load promise was giving me a headache
+            controlsWindow = document.createElement('div');
+            controlsWindow.id = anchorID+'world-map-controls';
+            controlsWindow.classList.add('world-map-controls');
+            anchor.appendChild(controlsWindow);
+            var tCom = document.createElement('div')
+            tCom.id='toggleContainer';
+            var tSpanAll = document.createElement('span');
+            tSpanAll.id = 'toggleContainerAll';
+            tSpanAll.textContent = "All";
+            var tSpanMan = document.createElement('span');
+            tSpanMan.id = 'toggleContainerManaged';
+            tSpanMan.textContent = "Managed";
+            var tSpanUnman = document.createElement('span');
+            tSpanUnman.id = 'toggleContainerUnmanaged';
+            tSpanUnman.textContent = "Unmanaged";
+            controlsWindow.appendChild(tCom);
+            tCom.appendChild(tSpanAll);
+            tCom.appendChild(tSpanMan);
+            tCom.appendChild(tSpanUnman);
+
+          }
+          controlsInit = true;
+
+          svg = d3.select(anchor).append("svg")
+              .attr("width", width-110)
               .attr("height", height)
+              .attr("transform", "translate(" + 110 + "," + 0 + ")")
               .attr("id", anchorID+"world-map-svg");
 
           //create modal
@@ -152,6 +186,21 @@ define([
             })
           }
           dataPanelInit = true;
+
+          var allToggle = window.document.querySelector('#toggleContainerAll');
+          var managedToggle = window.document.querySelector('#toggleContainerManaged');
+          var unmanagedToggle = window.document.querySelector('#toggleContainerUnmanaged');
+
+          allToggle.addEventListener('click', function(e){
+            console.log('all toggle clicked');
+          });
+          managedToggle.addEventListener('click', function(e){
+            console.log('managed toggle clicked');
+          });
+
+          unmanagedToggle.addEventListener('click', function(e){
+            console.log('unmanaged toggle clicked');
+          });
 
 
 
