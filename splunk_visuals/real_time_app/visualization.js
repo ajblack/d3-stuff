@@ -50,15 +50,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            __webpack_require__(2),
 	            __webpack_require__(3),
 	            __webpack_require__(4),
-	            __webpack_require__(5),
-	            __webpack_require__(6)
+	            __webpack_require__(5)
 	        ], __WEBPACK_AMD_DEFINE_RESULT__ = function(
 	            $,
 	            _,
 	            SplunkVisualizationBase,
 	            SplunkVisualizationUtils,
-	            d3,
-	            rAD3
+	            d3
 	        ) {
 
 	    return SplunkVisualizationBase.extend({
@@ -68,7 +66,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            this.$el = $(this.el);
 
 	            // Add a css selector class
-	            this.$el.addClass('splunk-ratio_app');
+	            this.$el.addClass('splunk-real_time_app');
 	            //this.isInitializedDom = false;
 	        },
 
@@ -78,149 +76,176 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	        getInitialDataParams: function() {
 	            return ({
-	                outputMode: SplunkVisualizationBase.ROW_MAJOR_OUTPUT_MODE,
+	                outputMode: SplunkVisualizationBase.COLUMN_MAJOR_OUTPUT_MODE,
 	                count: 10000
 	            });
 	        },
 
 	        updateView: function(data, config) {
-	          console.log('original data: ');
-	          console.log(data);
-	          var data = data;
-	          if(data.fields[0] == undefined || data.fields[0].name !== 'total_assets'){
-	            console.log('data doesnt match schema so making dummy data');
-	            data = {
-	              "fields":
-	              [
-	                {"name":"total_assets"},
-	                {"name":"total_man_assets"},
-	                {"name":"total_unman_assets"}
-	              ],
-	              "rows":
-	              [
-	                ['26','8','18']
-	              ]
-	            }
-	          }
-
-	          console.log('new data: ');
-	          console.log(data);
-
 	          this.$el.empty();
 	          //this is the original world map viz with 4 set points
 	          var anchor = this.el;
-	          anchor.classList.add('mySvgContainer');
+	          //anchor.classList.add('mySvgContainer');
 	          $(anchor).empty();
-	          var totalAssets = data.rows[0][0];
-	          var manAssets = data.rows[0][1];
-	          var unmanAssets = data.rows[0][2];
 
-
-
-	          myRatioAppD3Library.addComponents(anchor, data);
-
-
-	          myRatioAppD3Library.createModal(anchor);
-	          var modalDiv =  anchor.querySelector('.circle-hover-modal');
-
-	          var handleMouseMove = function(e){
-	            var modalDiv =  anchor.querySelector('.circle-hover-modal');
-	            modalDiv.style.top = e.clientY-10+'px';
-	            modalDiv.style.left = e.clientX+20+'px';
-	          }
-
-	          var svgContainer = d3.select(anchor).select('.circleContainer').append("svg")
-	            .attr("width", 200)
-	            .attr("height", 200)
-	            .attr('class', 'circleContainer')
-	            .append("g")
-	            .attr("transform", "translate(" + 100 + "," + 100 + ")");
-
-	          var scale = d3.scaleLinear()
-	            .domain([0,totalAssets])
-	            .range([0,100]);
-
-	          var totalAssetJson =
+	          var data =
 	          {
-	            "radius": totalAssets,
-	            "num": totalAssets,
-	            "class": "totalAssetCircle",
-	            "text": 'Total Assets'
-	          },
-	          manAssetJson =
-	          {
-	            "radius": manAssets,
-	            "num": manAssets,
-	            "class": "manAssetCircle",
-	            "text":"Known Assets"
-	          },
-	          unmanAssetJson =
-	          {
-	            "radius": unmanAssets,
-	            "num": unmanAssets,
-	            "class": "unmanAssetCircle",
-	            "text": 'Unknown Assets'
+	            "fields":
+	            [
+	              {"name": "_time"},
+	              {"name": "10.42.4.135"},
+	              {"name": "10.42.4.21"},
+	              {"name": "10.42.4.228"}
+	            ],
+	            "columns":
+	            [
+	              ["2017-06-12 17:07:45","2017-06-12 17:07:50","2017-06-12 17:07:55","2017-06-12 17:08:00","2017-06-12 17:08:05","2017-06-12 17:08:10"],
+	              ['0','1','0','3','2','3'],
+	              ['1','2','2','0','1','4'],
+	              ['3','1','1','1','2','1']
+	            ]
 	          };
+
+
+	          var newD = [];
+
+	          for(var j=1;j<data.fields.length;j++){
+	            var vals = [];
+	            for(var g=0;g<data.columns[0].length;g++){
+	              vals.push({"time":data.columns[0][g], "metric":data.columns[j][g]});
+	            }
+	            var r = {'ip':data.fields[j].name, 'values':vals};
+	            newD.push(r)
+	          }
+	          data = newD;
+	          console.log('data is: ');
+	          console.log(newD);
+
 	          /*
-	          this logic ensures that the circles are added to the view in order from largest to smallest
-	          this makes it easy to register hover events that will hit the smallest ones since they will be up in DOM
+	          data =
+	          [
+	          {
+	          "ip":"10.42.4.135",
+	          "values":
+	          [
+	            {"time":"2017-06-12 17:07:45","metric":"0"},
+	            {"time":"20111001","metric":"0"},
+	            {"time":"2017-06-12 17:07:50","metric":"1"},
+	            {"time":"2017-06-12 17:07:55","metric":"0"},
+	            {"time":"2017-06-12 17:08:00","metric":"3"},
+	            {"time":"2017-06-12 17:08:05","metric":"2"},
+	            {"time":"2017-06-12 17:08:10","metric":"3"}
+	          ]
+	          },
+	          {
+	          "ip":"10.42.4.21",
+	          "values":
+	          [
+	            {"time":"2017-06-12 17:07:45","metric":"1"},
+	            {"time":"2017-06-12 17:07:50","metric":"2"},
+	            {"time":"2017-06-12 17:07:55","metric":"2"},
+	            {"time":"2017-06-12 17:08:00","metric":"0"},
+	            {"time":"2017-06-12 17:08:05","metric":"1"},
+	            {"time":"2017-06-12 17:08:10","metric":"4"}
+	          ]
+	          },
+	          {
+	          "ip":"10.42.4.228",
+	          "values":
+	          [
+	            {"time":"2017-06-12 17:07:45","metric":"3"},
+	            {"time":"2017-06-12 17:07:50","metric":"1"},
+	            {"time":"2017-06-12 17:07:55","metric":"1"},
+	            {"time":"2017-06-12 17:08:00","metric":"1"},
+	            {"time":"2017-06-12 17:08:05","metric":"2"},
+	            {"time":"2017-06-12 17:08:10","metric":"1"}
+	          ]
+	          }
+	          ];
 	          */
-	          var jsonCircles =[totalAssetJson];
-	          if(parseInt(manAssets) > parseInt(unmanAssets)){
-	            jsonCircles.push(manAssetJson, unmanAssetJson);
-	          }
-	          else{
-	            jsonCircles.push(unmanAssetJson, manAssetJson);
-	          }
 
-	          var circles = svgContainer.selectAll("circle")
-	            .data(jsonCircles)
-	            .enter()
-	            .append("circle");
+	          var width = 960, height = 500;
 
-	          var circleAttributes = circles
-	            .attr("r", function(d) {
-	              return scale(d.radius);
-	            })
-	            .attr("class", function(d) {
-	              return d.class
-	            })
-	            .attr("data-num", function(d){
-	              return d.num
-	            })
-	            .on('mouseover', function(d){
-	              this.classList.add('hovered');
-	              modalDiv.classList.add('hovered');
-	              anchor.querySelector(".circle-hover-modal-detail").textContent = d.text+": "+d.num;
-	              this.addEventListener('mousemove',handleMouseMove);
-	            })
-	            .on('mouseleave', function(d){
-	              this.classList.remove('hovered');
-	              modalDiv.classList.remove('hovered');
-	              this.removeEventListener('mousemove',handleMouseMove);
-	            });
+	          var svg = d3.select(anchor).append('svg')
+	          .attr('width', width)
+	          .attr('height', height);
+	          var margin = {top: 20, right: 80, bottom: 30, left: 50},
+	          width = svg.attr("width") - margin.left - margin.right,
+	          height = svg.attr("height") - margin.top - margin.bottom,
+	          g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-	          d3.select(anchor).select(".totalAssetCircle")
-	            .attr('class', 'totalAsset');
+	          var x = d3.scaleTime().range([0, width]),
+	          y = d3.scaleLinear().range([height, 0]),
+	          z = d3.scaleOrdinal(d3.schemeCategory10);
 
-	          d3.select(anchor).select(".unmanAssetCircle")
-	            .attr("class", "unmanAsset")
-	            .attr("cx", function(d) {
-	              return -Math.sqrt(Math.pow(100-scale(unmanAssets),2)/2);
-	            })
-	            .attr("cy", function(d) {
-	              return -Math.sqrt(Math.pow(100-scale(unmanAssets),2)/2);
-	            });
-	          //radius of large circle - radius of small circle is hypotenuse in equation
-	          d3.select(anchor).select(".manAssetCircle")
-	            .attr("class", "manAsset")
-	            .attr("cx", function(d) {
-	              return -Math.sqrt(Math.pow(100-scale(manAssets),2)/2);
-	            })
-	            .attr("cy", function(d) {
-	              return -Math.sqrt(Math.pow(100-scale(manAssets),2)/2);
-	            });
-	          }
+
+	          var minD = new Date(data[0].values[0].time)
+	          var maxD = new Date(data[0].values[data[0].values.length-1].time)
+	          x.domain([minD, maxD]);
+
+
+	          y.domain([
+	          d3.min(data, function(c) {
+	          return d3.min(c.values, function(d) {
+	          return d.metric;
+	          });
+	          }),
+	          d3.max(data, function(c) {
+	          return d3.max(c.values, function(d) {
+	           return d.metric;
+	          });
+	          })
+	          ]);
+
+	          z.domain(data.map(function(c) { return c.ip; }));
+
+	          var line = d3.line()
+	          .curve(d3.curveBasis)
+	          .x(function(d) { console.log(x(new Date(d.time)));return x(new Date(d.time)); })
+	          .y(function(d) { console.log(y(d.metric));return y(d.metric); });
+
+
+
+	          var xAxis = d3.axisBottom(x)
+	          var yAxis = d3.axisLeft(y);
+	          yAxis.ticks(y.domain()[1]-y.domain()[0]);
+
+
+	          g.append("g")
+	          .attr("class", "axis axis--x")
+	          .attr("transform", "translate(0," + height + ")")
+	          .call(xAxis);
+
+	          g.append("g")
+	          .attr("class", "axis axis--y")
+	          .call(yAxis)
+	          .append("text")
+	          .attr("transform", "rotate(-90)")
+	          //.attr("y", 6)
+	          .attr("dy", "0.71em")
+	          .attr("fill", "#000")
+
+	          .text("Num Occurences");
+
+	          var city = g.selectAll(".city")
+	          .data(data)
+	          .enter().append("g")
+	          .attr("class", "city");
+
+
+	          city.append("path")
+	          .attr("class", "line")
+	          .attr("d", function(d) { return line(d.values); })
+	          .style("stroke", function(d) { return z(d.ip); });
+
+	          city.append("text")
+	          .datum(function(d) {return {ip: d.ip, value: d.values[d.values.length - 1]}; })
+	          .attr("transform", function(d) { return "translate(" + x(new Date(d.value.time)) + "," + y(d.value.metric) + ")"; })
+	          .attr("x", 3)
+	          .attr("dy", "0.35em")
+	          .style("font", "10px sans-serif")
+	          .text(function(d) { return d.ip; });
+	        }
 	      });
 	    }.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__))
 
@@ -28288,96 +28313,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	Object.defineProperty(exports, '__esModule', { value: true });
 
 	})));
-
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports) {
-
-	(function(window){
-
-	  function ratioAppD3Library(){
-	    var _v = {};
-
-
-	    _v.addComponents = function(anchor, data){
-	        var vizContainer = window.document.createElement('div'),
-	          legendContainer = window.document.createElement('div'),
-
-	          manAssetLegendContainer = window.document.createElement('div');
-	          manAssetLegendColor = window.document.createElement('span'),
-	          manAssetLegendText = window.document.createElement('span'),
-
-	          unmanAssetLegendContainer = window.document.createElement('div');
-	          unmanAssetLegendColor = window.document.createElement('span'),
-	          unmanAssetLegendText = window.document.createElement('span');
-
-	          totalAssetLegendContainer = window.document.createElement('div');
-	          totalAssetLegendColor = window.document.createElement('span'),
-	          totalAssetLegendText = window.document.createElement('span');
-
-	        vizContainer.classList.add('vizContainer');
-	        legendContainer.classList.add('legendContainer');
-	        manAssetLegendText.classList.add('manAssetLegendText');
-	        manAssetLegendColor.classList.add('manAssetLegendColor');
-	        unmanAssetLegendText.classList.add('unmanAssetLegendText');
-	        unmanAssetLegendColor.classList.add('unmanAssetLegendColor');
-	        totalAssetLegendText.classList.add('totalAssetLegendText');
-	        totalAssetLegendColor.classList.add('totalAssetLegendColor');
-
-	        manAssetLegendText.classList.add('legendText');
-	        manAssetLegendColor.classList.add('legendColor','manAsset');
-	        unmanAssetLegendText.classList.add('legendText');
-	        unmanAssetLegendColor.classList.add('legendColor','unmanAsset');
-	        totalAssetLegendText.classList.add('legendText');
-	        totalAssetLegendColor.classList.add('legendColor', 'totalAsset');
-	        anchor.appendChild(vizContainer);
-	        var circleContainer = window.document.createElement('div')
-	        circleContainer.classList.add('circleContainer');
-	        vizContainer.appendChild(circleContainer);
-	        vizContainer.appendChild(legendContainer);
-	        legendContainer.appendChild(totalAssetLegendContainer);
-	        legendContainer.appendChild(manAssetLegendContainer);
-	        legendContainer.appendChild(unmanAssetLegendContainer);
-
-	        totalAssetLegendContainer.appendChild(totalAssetLegendColor);
-	        totalAssetLegendContainer.appendChild(totalAssetLegendText);
-
-	        manAssetLegendContainer.appendChild(manAssetLegendColor);
-	        manAssetLegendContainer.appendChild(manAssetLegendText);
-
-	        unmanAssetLegendContainer.appendChild(unmanAssetLegendColor);
-	        unmanAssetLegendContainer.appendChild(unmanAssetLegendText);
-
-	        totalAssetLegendText.textContent = data.rows[0][0]+' Total Assets';
-	        manAssetLegendText.textContent = data.rows[0][1]+' Known Assets';
-	        unmanAssetLegendText.textContent = data.rows[0][2]+' Unknown Assets';
-	    }
-
-	    _v.createModal = function(anchor){
-
-	        var modalDiv = window.document.createElement('div'),
-	          modalDetail = window.document.createElement('span');
-
-	        modalDiv.classList.add('circle-hover-modal');
-	        modalDetail.classList.add('circle-hover-modal-detail');
-	        modalDetail.classList.add('modal-detail');
-	        anchor.appendChild(modalDiv);
-	        modalDiv.appendChild(modalDetail);
-
-	      }
-
-
-	    return _v;
-	  }
-
-
-
-	  // We need that our library is globally accesible, then we save in the window
-	  if(typeof(window.myRatioAppD3Library) === 'undefined'){
-	    window.myRatioAppD3Library = ratioAppD3Library();
-	  }
-	})(window); // We send the window variable withing our function
 
 
 /***/ })

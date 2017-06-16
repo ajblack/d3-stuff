@@ -17,39 +17,39 @@
  }
 
 
- #circleContainer body {
+ .circleContainer body {
    background-color: white;
 
 
  }
 
- #circleContainer svg{
+ .circleContainer svg{
    background-color: white;
    border:none;
  }
 
 
- #vizContainer{
+ .vizContainer{
    width:400px;
    height:400px;
    padding:10px;
  }
- #circleContainer{
+ .circleContainer{
    width:200px;
    height:200px;
  }
- #legendContainer{
+ .legendContainer{
    background-color: white;
    padding-top:10px;
    max-width:200px;
  }
 
- #legendContainer .legendText{
+ .legendContainer .legendText{
    padding:  5px;
    font: 1em "Open Sans", sans-serif;
  }
 
- #legendContainer .legendColor{
+ .legendContainer .legendColor{
    border-radius: 50%;
    width: .5em;
    height: .5em;
@@ -83,7 +83,7 @@
  }
 
 
- #circle-hover-modal{
+ .circle-hover-modal{
    max-height: 500px;
   background-color: rgb(47, 49, 51); /*dark grey*/
   opacity: 0;
@@ -95,7 +95,7 @@
   transition: opacity .5s, z-index .1s;
  }
 
- #circle-hover-modal.hovered{
+ .circle-hover-modal.hovered{
    opacity:.8;
    z-index:1000;
  }
