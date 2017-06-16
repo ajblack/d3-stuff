@@ -75,19 +75,19 @@ define([
           myRatioAppD3Library.addComponents(anchor, data);
 
 
-          myRatioAppD3Library.createModal();
-          var modalDiv =  document.getElementById('circle-hover-modal');
+          myRatioAppD3Library.createModal(anchor);
+          var modalDiv =  anchor.querySelector('.circle-hover-modal');
 
           var handleMouseMove = function(e){
-            var modalDiv =  document.getElementById('circle-hover-modal');
+            var modalDiv =  anchor.querySelector('.circle-hover-modal');
             modalDiv.style.top = e.clientY-10+'px';
             modalDiv.style.left = e.clientX+20+'px';
           }
 
-          var svgContainer = d3.select("#circleContainer").append("svg")
+          var svgContainer = d3.select(anchor).select('.circleContainer').append("svg")
             .attr("width", 200)
             .attr("height", 200)
-            .attr('id', 'circleContainer')
+            .attr('class', 'circleContainer')
             .append("g")
             .attr("transform", "translate(" + 100 + "," + 100 + ")");
 
@@ -99,22 +99,22 @@ define([
           {
             "radius": totalAssets,
             "num": totalAssets,
-            "id": "totalAssetCircle",
+            "class": "totalAssetCircle",
             "text": 'Total Assets'
           },
           manAssetJson =
           {
             "radius": manAssets,
             "num": manAssets,
-            "id": "manAssetCircle",
-            "text":"Managed Assets"
+            "class": "manAssetCircle",
+            "text":"Known Assets"
           },
           unmanAssetJson =
           {
             "radius": unmanAssets,
             "num": unmanAssets,
-            "id": "unmanAssetCircle",
-            "text": 'Unmanaged Assets'
+            "class": "unmanAssetCircle",
+            "text": 'Unknown Assets'
           };
           /*
           this logic ensures that the circles are added to the view in order from largest to smallest
@@ -137,8 +137,8 @@ define([
             .attr("r", function(d) {
               return scale(d.radius);
             })
-            .attr("id", function(d) {
-              return d.id
+            .attr("class", function(d) {
+              return d.class
             })
             .attr("data-num", function(d){
               return d.num
@@ -146,7 +146,7 @@ define([
             .on('mouseover', function(d){
               this.classList.add('hovered');
               modalDiv.classList.add('hovered');
-              document.querySelector("#circle-hover-modal-detail").textContent = d.text+": "+d.num;
+              anchor.querySelector(".circle-hover-modal-detail").textContent = d.text+": "+d.num;
               this.addEventListener('mousemove',handleMouseMove);
             })
             .on('mouseleave', function(d){
@@ -155,10 +155,10 @@ define([
               this.removeEventListener('mousemove',handleMouseMove);
             });
 
-          d3.select("#totalAssetCircle")
+          d3.select(anchor).select(".totalAssetCircle")
             .attr('class', 'totalAsset');
 
-          d3.select("#unmanAssetCircle")
+          d3.select(anchor).select(".unmanAssetCircle")
             .attr("class", "unmanAsset")
             .attr("cx", function(d) {
               return -Math.sqrt(Math.pow(100-scale(unmanAssets),2)/2);
@@ -167,7 +167,7 @@ define([
               return -Math.sqrt(Math.pow(100-scale(unmanAssets),2)/2);
             });
           //radius of large circle - radius of small circle is hypotenuse in equation
-          d3.select("#manAssetCircle")
+          d3.select(anchor).select(".manAssetCircle")
             .attr("class", "manAsset")
             .attr("cx", function(d) {
               return -Math.sqrt(Math.pow(100-scale(manAssets),2)/2);
