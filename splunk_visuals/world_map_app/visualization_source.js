@@ -31,7 +31,7 @@ define([
             this.$el = $(this.el);
 
             // Add a css selector class
-            this.$el.addClass('splunk-radial-meter');
+            this.$el.addClass('world-map-app');
             //this.isInitializedDom = false;
         },
 
@@ -52,15 +52,10 @@ define([
           var modalInit = false;
           var dataPanelInit = false;
 
-          //datashowing value is either unmanaged, managed, or all
-          var dataShowing = myCustomDataLibrary.getDataShowing();
-          console.log('Data Showing is : '+dataShowing);
-          dataShowing = myCustomDataLibrary.setDataShowing("Unmanaged");
-          console.log('Data Showing is : '+dataShowing);
-          dataShowing = myCustomDataLibrary.setDataShowing("Managed");
-          console.log('Data Showing is : '+dataShowing);
 
           var modalWindow, detailWindow, svgRect, controlsWindow, svg, controlsDim;
+
+
 
           this.$el.empty();
           //this is the original world map viz with 4 set points
@@ -70,16 +65,40 @@ define([
           $(anchor).empty();
           var world = myWorldGeoLibrary.worldGeo();
           //convert the coordinates into the features attribute of a geojson object
-          var latlong = {"type":"FeatureCollection", "features":[]}
-
-          var dataRet = myCustomDataLibrary.getData(data, dataShowing);
-          latlong.features = dataRet[1][1];
-          var coordinatePairs = dataRet[1];
+          //var latlong = {"type":"FeatureCollection", "features":[]}
+          myCustomD3Library.getD3(d3);
+          var dataRet = myCustomDataLibrary.getData(data, myCustomDataLibrary.getDataShowing());
+          //latlong.features = dataRet[1];
+          var coordinatePairs = dataRet;
           //latlong.features = retCords;
 
           var anchorDims = anchor.getBoundingClientRect(),
               width = anchorDims.width,
               height = anchorDims.height;
+
+            console.log('width: '+width);
+
+
+          var ftest = topojson.feature(world, world.objects.countries).features;
+          var fCollection = {type: 'FeatureCollection', features: ftest};
+          var bounds = d3.geoBounds(fCollection);
+          var center = d3.geoCentroid(fCollection);
+          var distance = d3.geoDistance(bounds[0], bounds[1]),
+            scale = height / distance;
+
+
+
+
+
+          var offsetX = (width-(height*2))/2;
+
+          var projection = d3.geoEquirectangular()
+            .scale(scale)
+            //.center(center) (width-(height*2))/2
+            .translate([(width/2)+80,height/2]) //offest x translate by 90px to move the map to right edge of anchor
+
+          var pathGenerator = d3.geoPath()
+              .projection(projection)
 
 
           //create controls container
@@ -97,10 +116,10 @@ define([
             tSpanAll.textContent = "All";
             var tSpanMan = document.createElement('span');
             tSpanMan.id = 'toggleContainerManaged';
-            tSpanMan.textContent = "Managed";
+            tSpanMan.textContent = "Known";
             var tSpanUnman = document.createElement('span');
             tSpanUnman.id = 'toggleContainerUnmanaged';
-            tSpanUnman.textContent = "Unmanaged";
+            tSpanUnman.textContent = "Unknown";
             controlsWindow.appendChild(tCom);
             tCom.appendChild(tSpanAll);
             tCom.appendChild(tSpanMan);
@@ -110,9 +129,11 @@ define([
           controlsInit = true;
 
           svg = d3.select(anchor).append("svg")
-              .attr("width", width-110)
+              .attr("width", width)
+              //.attr("width", height*2)
               .attr("height", height)
-              .attr("transform", "translate(" + 110 + "," + 0 + ")")
+              //.attr("transform", "translate(" + 0 + "," + 0 + ")")
+              //.attr("transform", "translate("+214 + "," + 0 + ")")
               .attr("id", anchorID+"world-map-svg");
 
           //create modal
@@ -141,7 +162,6 @@ define([
               e.preventDefault();
               panelWindow.classList.remove('visiblemodal');
               var panelLocal = panelWindow.getAttribute('data-myid');
-              console.log('panelLocal: '+panelLocal);
               var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelLocal+'"]');
               if(matchingPath.dataset.status == "Unmanaged"){
                 matchingPath.setAttribute('stroke', 'red');
@@ -155,7 +175,6 @@ define([
             panelWindow.addEventListener('mouseover', function(e){
               panelWindow.classList.add('hovered');
               var panelLocal = panelWindow.getAttribute('data-myid');
-              console.log('panelLocal: '+panelLocal);
               var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelLocal+'"]');
               matchingPath.setAttribute('stroke', 'blue');
               matchingPath.setAttribute('marker-end','url(#triangleSelected)');
@@ -186,20 +205,40 @@ define([
             })
           }
           dataPanelInit = true;
-
-          var allToggle = window.document.querySelector('#toggleContainerAll');
-          var managedToggle = window.document.querySelector('#toggleContainerManaged');
-          var unmanagedToggle = window.document.querySelector('#toggleContainerUnmanaged');
+          var toggleContainer = document.querySelector('#toggleContainer');
+          //toggleContainer.setAttribute('min-width',width-(height*2)+'px');
+          var allToggle = toggleContainer.querySelector('#toggleContainerAll');
+          var managedToggle = toggleContainer.querySelector('#toggleContainerManaged');
+          var unmanagedToggle = toggleContainer.querySelector('#toggleContainerUnmanaged');
 
           allToggle.addEventListener('click', function(e){
-            console.log('all toggle clicked');
+            managedToggle.classList.remove('selected');
+            unmanagedToggle.classList.remove('selected');
+            allToggle.classList.add('selected');
+            myCustomDataLibrary.setDataShowing("All");
+            var newData = myCustomDataLibrary.getData(data, myCustomDataLibrary.getDataShowing());
+            d3.selectAll('.missileLine').remove();
+            myCustomD3Library.drawMissileLines(projection, svg, newData, anchorID, modalWindow, panelWindow);
+
           });
           managedToggle.addEventListener('click', function(e){
-            console.log('managed toggle clicked');
+            allToggle.classList.remove('selected');
+            unmanagedToggle.classList.remove('selected');
+            managedToggle.classList.add('selected');
+            myCustomDataLibrary.setDataShowing("Managed");
+            var newData = myCustomDataLibrary.getData(data, myCustomDataLibrary.getDataShowing());
+            d3.selectAll('.missileLine').remove();
+            myCustomD3Library.drawMissileLines(projection, svg, newData, anchorID, modalWindow, panelWindow);
           });
 
           unmanagedToggle.addEventListener('click', function(e){
-            console.log('unmanaged toggle clicked');
+            allToggle.classList.remove('selected');
+            managedToggle.classList.remove('selected');
+            unmanagedToggle.classList.add('selected');
+            myCustomDataLibrary.setDataShowing("Unmanaged");
+            var newData = myCustomDataLibrary.getData(data, myCustomDataLibrary.getDataShowing());
+            d3.selectAll('.missileLine').remove();
+            myCustomD3Library.drawMissileLines(projection, svg, newData, anchorID, modalWindow, panelWindow);
           });
 
 
@@ -240,12 +279,7 @@ define([
               .attr("fill", "blue");
 
 
-          var projection = d3.geoEquirectangular()
-            .scale(153)
-            .translate([width/2,height/2])
 
-          var pathGenerator = d3.geoPath()
-              .projection(projection)
 
           svg.append("g")
             .attr("class", "land")
@@ -272,66 +306,8 @@ define([
             .attr( "d", pathGenerator);*/
 
             //using the coordinate pair object construct lines between coordinates
-            for(var i=0;i<coordinatePairs.length;i++){
-              var p1 = projection([coordinatePairs[i][0].geometry.coordinates[0],coordinatePairs[i][0].geometry.coordinates[1]])
-              var p2 = projection([coordinatePairs[i][1].geometry.coordinates[0],coordinatePairs[i][1].geometry.coordinates[1]])
-              svg.append("path")
-              //.attr("d", draw_curve(p1[0],p1[1],p2[0],p2[1],5))
-              .attr("d", myCustomD3Library.draw_curve(p1[0],p1[1],p2[0],p2[1],5))
-              .attr("stroke-width", "2px")
-              .attr("stroke", function(d){
-                if(coordinatePairs[i][0].properties.status === "Unmanaged"){
-                  return 'red';
-                }
-                else{
-                  return 'green';
-                }
-              })
-              .attr("fill", "none")
-              .attr("data-src_ip", coordinatePairs[i][0].properties.src_ip)
-              .attr("data-src_port", coordinatePairs[i][0].properties.src_port)
-              .attr("data-protocol", coordinatePairs[i][0].properties.protocol)
-              .attr("data-src_location", coordinatePairs[i][0].properties.src_location)
-              .attr("data-dest_ip", coordinatePairs[i][0].properties.dest_ip)
-              .attr("data-dest_port", coordinatePairs[i][0].properties.dest_port)
-              .attr("data-dest_location", coordinatePairs[i][0].properties.dest_location)
-              .attr("data-bytes", coordinatePairs[i][0].properties.bytes)
-              .attr("data-bytes_in", coordinatePairs[i][0].properties.bytes_in)
-              .attr("data-bytes_out", coordinatePairs[i][0].properties.bytes_out)
-              .attr("data-rule", coordinatePairs[i][0].properties.rule)
-              .attr("data-action", coordinatePairs[i][0].properties.action)
-              .attr("data-City", coordinatePairs[i][0].properties.City)
-              .attr("data-Country", coordinatePairs[i][0].properties.Country)
-              .attr("data-Region", coordinatePairs[i][0].properties.Region)
-              .attr("data-_timediff", coordinatePairs[i][0].properties._timediff)
-              .attr("data-end_lat", coordinatePairs[i][0].properties.end_lat)
-              .attr("data-end_lon", coordinatePairs[i][0].properties.end_lon)
-              .attr("data-geo_info", coordinatePairs[i][0].properties.geo_info)
-              .attr("data-start_lat", coordinatePairs[i][0].properties.start_lat)
-              .attr("data-start_lon", coordinatePairs[i][0].properties.start_lon)
-              .attr("data-status", coordinatePairs[i][0].properties.status)
-              .attr("data-myid",function(){
-                return anchorID+coordinatePairs[i][0].properties.myid;
-              })
-              .attr("marker-end", function(d){
-                if(coordinatePairs[i][0].properties.status === "Unmanaged"){
-                  return 'url(#triangleUnmanaged)';
-                }
-                else{
-                  return 'url(#triangleManaged)';
-                }
-              })
-              .on("mouseover", function(d){
-                myCustomD3Library.handlePathMouseover(this, modalWindow, panelWindow, d3.event);
-              })
-              .on("click", function(d){
-                myCustomD3Library.handlePathClick(this, modalWindow, panelWindow, d3.event);
-              })
-              .on("mouseleave", function(d){
-                myCustomD3Library.handlePathMouseleave(this, modalWindow, panelWindow, d3.event);
 
-              });
-            }
+            myCustomD3Library.drawMissileLines(projection, svg, coordinatePairs, anchorID, modalWindow, panelWindow);
           }
         });
       })
