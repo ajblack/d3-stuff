@@ -3,11 +3,26 @@
   function customD3Library(){
     var _v = {};
 
+    var d3 = null;
+
     var modalInit = false;
     var dataPanelInit = false;
 
+    _v.getD3 = function(d3pass){
+      d3 = d3pass;
+    }
+
+    //band aid to convert managed/unmanaged status to show as known/unknwon
+    _v.convertManagedKnown = function(originalStatus){
+      if(originalStatus == 'Unmanaged'){
+        return 'Unknown';
+      }
+      else{
+        return 'Known';
+      }
+    }
+
     _v.handlePathClick = function(path, modalWindow, panelWindow, d3Event){
-      console.log('handling path click from lib');
       modalWindow.classList.remove("visiblemodal");
       panelWindow.classList.add("visiblemodal");
       panelWindow.querySelector("#panel-src_ip").textContent = "Source IP: "+path.getAttribute("data-src_ip");
@@ -31,7 +46,8 @@
 
       panelWindow.querySelector("#panel-start_lat").textContent = "Start Lat: "+path.getAttribute("data-start_lat");
       panelWindow.querySelector("#panel-start_lon").textContent = "Start Long: "+path.getAttribute("data-start_lon");
-      panelWindow.querySelector("#panel-status").textContent = "Status: "+path.getAttribute("data-status");
+      //panelWindow.querySelector("#panel-status").textContent = "Status: "+path.getAttribute("data-status");
+      panelWindow.querySelector("#panel-status").textContent = "Status: "+_v.convertManagedKnown(path.getAttribute("data-status"));
       panelWindow.setAttribute('data-myid', path.getAttribute('data-myid'));
       panelWindow.classList.add('hovered');
       if(path.dataset.status === "Unmanaged"){
@@ -126,70 +142,73 @@
         containment:anchor
       });
     }
-/*
-    _v.createModal = function(anchor, anchorID){
-      if(!modalInit){
 
-        var modalDiv = window.document.createElement('div');
-        modalDiv.id = 'world-map-hover-modal';
-        window.document.getElementsByTagName('body')[0].appendChild(modalDiv);
-        $("#world-map-hover-modal" ).load( "/static/app/world_map_app/modal.html", function(){});
-
-      }
-      modalInit = true;
-    }
-
-    _v.createDataPanel = function(anchor, anchorID){
-
-      if(!dataPanelInit){
-        var panelDiv = window.document.createElement('div');
-        panelDiv.id = anchorID+'world-map-data-panel';
-        var panelID = '#'+anchorID+'world-map-data-panel';
-
-      //  console.log("parent element: ")+document.getElementsByClassName('splunk-radial-meter')[0];
-
-        window.document.getElementsByTagName('body')[0].appendChild(panelDiv);
-
-        $(panelID).draggable({
-          containment:panelID
-        });
-
-
-        $(panelID).load('/static/app/world_map_app/datapanel.html', function(){});
-        panelDiv.addEventListener('contextmenu', function(e){
-          e.preventDefault();
-          panelDiv.classList.remove('visiblemodal');
-        });
-        panelDiv.addEventListener('mouseover', function(e){
-          panelDiv.classList.add('hovered');
-          var panelID = panelDiv.getAttribute('data-myid');
-          var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelID+'"]');
-          matchingPath.setAttribute('stroke', 'blue');
-        });
-        panelDiv.addEventListener('mouseleave', function(e){
-          panelDiv.classList.remove('hovered');
-          var panelID = panelDiv.getAttribute('data-myid');
-          var matchingPath = window.document.querySelector('#'+anchorID+'world-map-svg').querySelector('[data-myid="'+panelID+'"]');
-          matchingPath.setAttribute('stroke', 'red');
-        });
-        window.addEventListener('scroll', function(e){
-          var panelBox = document.querySelector(panelID).getBoundingClientRect();
-          var anchorBox = document.querySelector(anchorID).getBoundingClientRect();
-
-					//console.log("panel top: "+panelBox.top+" and anchorTop: "+anchorBox.top);
-          //console.log("panel bottom: "+panelBox.bottom+" and anchorTop: "+anchorBox.bottom);
-          if(panelBox.top < anchorBox.top){
-            panelDiv.style.top = anchorBox.top+'px';
+    _v.drawMissileLines = function(projection, svg, coordinatePairs, anchorID, modalWindow, panelWindow){
+      for(var i=0;i<coordinatePairs.length;i++){
+        var p1 = projection([coordinatePairs[i][0].geometry.coordinates[0],coordinatePairs[i][0].geometry.coordinates[1]])
+        var p2 = projection([coordinatePairs[i][1].geometry.coordinates[0],coordinatePairs[i][1].geometry.coordinates[1]])
+        svg.append("path")
+        //.attr("d", draw_curve(p1[0],p1[1],p2[0],p2[1],5))
+        .attr("d", _v.draw_curve(p1[0],p1[1],p2[0],p2[1],5))
+        .attr("stroke-width", "2px")
+        .attr('class','missileLine')
+        .attr("stroke", function(d){
+          if(coordinatePairs[i][0].properties.status === "Unmanaged"){
+            return 'red';
           }
-          else if(panelBox.bottom > anchorBox.bottom){
-            panelDiv.style.top = anchorBox.bottom - panelBox.height+'px';
+          else{
+            return 'green';
           }
         })
-      }
-      dataPanelInit = true;
+        .attr("fill", "none")
+        .attr("data-src_ip", coordinatePairs[i][0].properties.src_ip)
+        .attr("data-src_port", coordinatePairs[i][0].properties.src_port)
+        .attr("data-protocol", coordinatePairs[i][0].properties.protocol)
+        .attr("data-src_location", coordinatePairs[i][0].properties.src_location)
+        .attr("data-dest_ip", coordinatePairs[i][0].properties.dest_ip)
+        .attr("data-dest_port", coordinatePairs[i][0].properties.dest_port)
+        .attr("data-dest_location", coordinatePairs[i][0].properties.dest_location)
+        .attr("data-bytes", coordinatePairs[i][0].properties.bytes)
+        .attr("data-bytes_in", coordinatePairs[i][0].properties.bytes_in)
+        .attr("data-bytes_out", coordinatePairs[i][0].properties.bytes_out)
+        .attr("data-rule", coordinatePairs[i][0].properties.rule)
+        .attr("data-action", coordinatePairs[i][0].properties.action)
+        .attr("data-City", coordinatePairs[i][0].properties.City)
+        .attr("data-Country", coordinatePairs[i][0].properties.Country)
+        .attr("data-Region", coordinatePairs[i][0].properties.Region)
+        .attr("data-_timediff", coordinatePairs[i][0].properties._timediff)
+        .attr("data-end_lat", coordinatePairs[i][0].properties.end_lat)
+        .attr("data-end_lon", coordinatePairs[i][0].properties.end_lon)
+        .attr("data-geo_info", coordinatePairs[i][0].properties.geo_info)
+        .attr("data-start_lat", coordinatePairs[i][0].properties.start_lat)
+        .attr("data-start_lon", coordinatePairs[i][0].properties.start_lon)
+        .attr("data-status", coordinatePairs[i][0].properties.status)
+        .attr("data-myid",function(){
+          return anchorID+coordinatePairs[i][0].properties.myid;
+        })
+        .attr("marker-end", function(d){
+          if(coordinatePairs[i][0].properties.status === "Unmanaged"){
+            return 'url(#triangleUnmanaged)';
+          }
+          else{
+            return 'url(#triangleManaged)';
+          }
+        })
 
+        .on("mouseover", function(d){
+          _v.handlePathMouseover(this, modalWindow, panelWindow, d3.event);
+        })
+        .on("click", function(d){
+          _v.handlePathClick(this, modalWindow, panelWindow, d3.event);
+        })
+        .on("mouseleave", function(d){
+          _v.handlePathMouseleave(this, modalWindow, panelWindow, d3.event);
+
+        });
+
+      }
     }
-*/
+
     return _v;
   }
 
